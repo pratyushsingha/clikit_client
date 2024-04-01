@@ -1,17 +1,29 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./index.css";
-import { Button } from "./components/ui/button";
+import { useContext } from 'react';
+import { Outlet } from 'react-router-dom';
+import LoadingBar from 'react-top-loading-bar';
 
-function App() {
-  const [count, setCount] = useState(0);
+import './index.css';
+import { Container, AppContext } from '@/components/Index';
+import Navbar from './components/Navbar';
 
+const App = () => {
+  const { progress, setProgress } = useContext(AppContext);
   return (
     <>
-      <Button>Click me</Button>
+      <LoadingBar
+        color="#22C55E"
+        progress={progress}
+        onLoaderFinished={() => setProgress(0)}
+        shadow="true"
+        className="pb-1"
+      />
+
+      <Container>
+        <Navbar />
+        <Outlet />
+      </Container>
     </>
   );
-}
+};
 
 export default App;
