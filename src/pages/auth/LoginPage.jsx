@@ -73,7 +73,7 @@ const LoginPage = () => {
         title: 'success',
         description: `welcome back ${response.data.data.user.username}`
       });
-      navigate('/');
+      navigate('/dashboard');
 
       setLoader(false);
       setProgress(100);
@@ -168,7 +168,7 @@ const LoginPage = () => {
             to="/register"
             className="font-semibold leading-6 text-[#22C55E] hover:text-green-600 hover:underline"
           >
-             signup
+            signup
           </Link>
         </CardFooter>
       </Card>

@@ -18,8 +18,8 @@ const App = () => {
         className="pb-1"
       />
 
+      <Navbar />
       <Container>
-        <Navbar />
         <Outlet />
       </Container>
     </>
