@@ -1,11 +1,189 @@
-import React from 'react'
+import {
+  ChevronRight,
+  Rocket,
+  Copy,
+  QrCode,
+  Check,
+  Download
+} from 'lucide-react';
+import { z } from 'zod';
+import axios from 'axios';
+
+import {
+  Button,
+  Input,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Label
+} from '@/components/Index';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Spinner from '@/components/loader/Spinner';
+import { useToast } from '@/components/ui/use-toast';
+import { Link } from 'react-router-dom';
+
+const urlSchema = z.object({
+  url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })
+});
 
 const HomePage = () => {
-  return (
-    <div>
-      this is home page
-    </div>
-  )
-}
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [shortenedUrl, setShortenedUrl] = useState([]);
+  const [isCopied, setIsCopied] = useState(false);
+  const [qrcode, setQrcode] = useState([]);
 
-export default HomePage
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(urlSchema)
+  });
+
+  const shortUrl = async ({ url }) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/url/short`,
+        { originalUrl: url },
+        { withCredentials: true }
+      );
+
+      setShortenedUrl(response.data.data);
+      //   console.log(shortenedUrl);
+      //   console.log(response.data.data)
+      setLoading(false);
+    } catch (error) {
+      console.error('Error shortening URL:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleCopy = async (e) => {
+    e.preventDefault();
+    await window.navigator.clipboard.writeText(shortenedUrl.shortenUrl);
+    setIsCopied(true);
+
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
+  };
+
+  const generateQrCode = async (url_id) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/url/qrcode/${url_id}`,
+        { withCredentials: true }
+      );
+      setQrcode(response.data.data.qrcode);
+      localStorage.setItem('qrcode', response.data.data.qrcode);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = qrcode;
+    link.download = `${shortenedUrl.shortenUrl}_qrcode.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="flex justify-center items-center flex-col text-center">
+      <p className="h1">
+        Simplify your <span className="textGradiant">Links</span>
+      </p>
+      <span className="text-center w-3/5 my-3 text-slate-400">
+        Your go-to URL shortener, provides a streamlined approach to link
+        sharing. We empower you to manage your links effortlessly. Explore our
+        user-friendly dashboard and robust analytics to enhance your link
+        management experience.
+      </span>
+      <Button className="bgGradiant text-white my-2">
+        {localStorage.getItem('accessToken') ? (
+          <Link to="/dashboard">Get Started</Link>
+        ) : (
+          <Link to="/login">Get Started</Link>
+        )}
+        <ChevronRight />
+      </Button>
+      <form onSubmit={handleSubmit(shortUrl)}>
+        <div className="my-5 flex justify-center items-center border-2 rounded">
+          <Input
+            placeholder="Shorten your link"
+            {...register('url', { required: true })}
+          />
+          <Button type="submit" variant="ghost">
+            {loading ? <Spinner className="w-10 h-10" /> : <Rocket />}
+          </Button>
+        </div>
+        {errors.url && <p className="text-red-600">{errors.url?.message}</p>}
+      </form>
+      {shortenedUrl && (
+        <div className="bg-slate-500 rounded p-3 ">
+          <div className="flex justify-between">
+            <a href={`${shortenedUrl.shortenUrl}`} target="_blank">
+              <div className="flex mx-3">
+                <img
+                  className="h-10 w-10 rounded-full self-center mr-2"
+                  src={shortenedUrl.logo}
+                  alt={shortenedUrl.originalUrl}
+                />
+                <div className="">
+                  <p className="flex justify-start font-bold">
+                    {shortenedUrl.shortenUrl}
+                  </p>
+                  <p className="text-sm flex justify-start">
+                    {shortenedUrl?.originalUrl?.slice(0, 30)}...
+                  </p>
+                </div>
+              </div>
+            </a>
+            <div className="flex space-x-4">
+              <button onClick={handleCopy}>
+                {isCopied === true ? <Check /> : <Copy />}
+              </button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button onClick={() => generateQrCode(shortenedUrl._id)}>
+                    <QrCode />
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl text-center">
+                      QR Code
+                    </DialogTitle>
+                    <DialogDescription className="text-center">
+                      Scan the QR Code to open the link on your phone
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex justify-center items-center">
+                    <img src={qrcode} alt={shortenedUrl.shortUrl} download />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleDownload}>
+                      <Download />
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default HomePage;

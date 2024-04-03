@@ -12,6 +12,7 @@ import {
   HomePage
 } from './components/Index';
 import { Toaster } from './components/Index';
+import DashboardPage from './pages/DashboardPage';
 
 const router = createBrowserRouter([
   {
@@ -20,7 +21,8 @@ const router = createBrowserRouter([
     children: [
       { path: '/register', element: <SignupPage /> },
       { path: '/login', element: <LoginPage /> },
-      { path: '/', element: <HomePage /> }
+      { path: '/', element: <HomePage /> },
+      { path: '/dashboard', element: <DashboardPage /> }
     ]
   }
 ]);

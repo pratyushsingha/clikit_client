@@ -60,3 +60,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+.h1 {
+  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl
+}
+
+.h2 {
+  @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+}
+
+.textGradiant {
+  background: #25CC0F;
+  background: linear-gradient(to bottom right, #25CC0F 0%, #9E3212 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bgGradiant {
+  background: rgb(2, 0, 36);
+  background: linear-gradient(251deg, rgba(2, 0, 36, 1) 0%, rgba(15, 121, 9, 1) 35%, rgba(0, 212, 255, 1) 100%);
+  transition: background 0.3s ease;
+}
+
+:hover.bgGradiant {
+  background: rgb(2, 0, 36);
+  background: linear-gradient(225deg, rgba(2, 0, 36, 1) 0%, rgba(15, 121, 9, 1) 35%, rgba(0, 212, 255, 1) 100%);
+}
