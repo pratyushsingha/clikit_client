@@ -23,7 +23,7 @@ import {
   Button,
   AppContext
 } from '@/components/Index';
-import { useToast } from '@/components/ui/use-toast';
+// import { useToast } from '@/components/ui/use-toast';
 
 const SignupSchema = z
   .object({
@@ -47,7 +47,7 @@ const SignupSchema = z
   });
 
 const SignupPage = () => {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const {
     register,
     handleSubmit,
@@ -83,18 +83,18 @@ const SignupPage = () => {
       );
       setLoader(false);
       setProgress(progress + 100);
-      toast({
-        title: 'success',
-        description: `welcome ${data.data.data.fullName}`
-      });
+      // toast({
+      //   title: 'success',
+      //   description: `welcome ${data.data.data.fullName}`
+      // });
       console.log(data.data.data.fullName.split(' ')[0]);
     } catch (error) {
       console.log(error);
-      toast({
-        variant: 'destructive',
-        title: 'error',
-        description: `${error.message}`
-      });
+      // toast({
+      //   variant: 'destructive',
+      //   title: 'error',
+      //   description: `${error.message}`
+      // });
       setLoader(false);
       setProgress(progress + 100);
     }

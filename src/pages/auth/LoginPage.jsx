@@ -7,7 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { useToast } from '@/components/ui/use-toast';
+// import { useToast } from '@/components/ui/use-toast';
 import {
   Checkbox,
   Label,
@@ -34,7 +34,7 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(null);
   const [loader, setLoader] = useState(false);
@@ -69,10 +69,10 @@ const LoginPage = () => {
         localStorage.setItem('accessToken', response.data.data.accessToken);
         console.log(rememberMe);
       }
-      toast({
-        title: 'success',
-        description: `welcome back ${response.data.data.user.username}`
-      });
+      // toast({
+      //   title: 'success',
+      //   description: `welcome back ${response.data.data.user.username}`
+      // });
       navigate('/dashboard');
 
       setLoader(false);

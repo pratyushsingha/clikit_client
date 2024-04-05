@@ -4,7 +4,6 @@ import {
   Copy,
   QrCode,
   Check,
-  Download
 } from 'lucide-react';
 import { z } from 'zod';
 import axios from 'axios';
@@ -13,31 +12,29 @@ import {
   Button,
   Input,
   Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
-  Label
+  Label,
+  AppContext
 } from '@/components/Index';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Spinner from '@/components/loader/Spinner';
-import { useToast } from '@/components/ui/use-toast';
+// import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
+import QrDialog from '@/components/QrDialog';
 
 const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })
 });
 
 const HomePage = () => {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [shortenedUrl, setShortenedUrl] = useState([]);
+  // const { toast } = useToast();
+
   const [isCopied, setIsCopied] = useState(false);
-  const [qrcode, setQrcode] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { generateQrCode, qrcode, shortenedUrl, setShortenedUrl } =
+    useContext(AppContext);
 
   const {
     register,
@@ -57,8 +54,6 @@ const HomePage = () => {
       );
 
       setShortenedUrl(response.data.data);
-      //   console.log(shortenedUrl);
-      //   console.log(response.data.data)
       setLoading(false);
     } catch (error) {
       console.error('Error shortening URL:', error);
@@ -74,28 +69,6 @@ const HomePage = () => {
     setTimeout(() => {
       setIsCopied(false);
     }, 2000);
-  };
-
-  const generateQrCode = async (url_id) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/url/qrcode/${url_id}`,
-        { withCredentials: true }
-      );
-      setQrcode(response.data.data.qrcode);
-      localStorage.setItem('qrcode', response.data.data.qrcode);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = qrcode;
-    link.download = `${shortenedUrl.shortenUrl}_qrcode.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -130,7 +103,7 @@ const HomePage = () => {
         {errors.url && <p className="text-red-600">{errors.url?.message}</p>}
       </form>
       {shortenedUrl && (
-        <div className="bg-slate-500 rounded p-3 ">
+        <div className="bg-gray-800 rounded p-3 ">
           <div className="flex justify-between">
             <a href={`${shortenedUrl.shortenUrl}`} target="_blank">
               <div className="flex mx-3">
@@ -159,24 +132,7 @@ const HomePage = () => {
                     <QrCode />
                   </button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl text-center">
-                      QR Code
-                    </DialogTitle>
-                    <DialogDescription className="text-center">
-                      Scan the QR Code to open the link on your phone
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex justify-center items-center">
-                    <img src={qrcode} alt={shortenedUrl.shortUrl} download />
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={handleDownload}>
-                      <Download />
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
+                <QrDialog shortenedUrl={shortenedUrl} qrcode={qrcode} />
               </Dialog>
             </div>
           </div>

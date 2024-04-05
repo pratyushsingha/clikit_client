@@ -11,6 +11,10 @@ import App from '@/App';
 import LoginPage from '@/pages/auth/LoginPage';
 import HomePage from '@/pages/HomePage';
 import ModeToggle from './mode-toggle';
+import DashboardPage from '@/pages/DashboardPage';
+import SettingPage from '@/pages/SettingPage';
+import Sidebar from './Sidebar';
+import { SidebarItems } from '@/utils/Index';
 
 import {
   Card,
@@ -44,9 +48,12 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from './ui/button';
-import { Toaster } from './ui/toaster';
+// import { Toaster } from './ui/toaster';
 import { Checkbox } from './ui/checkbox';
 import { Separator } from './ui/separator';
+import QrDialog from '@/components/QrDialog';
+import Spinner from '@/components/loader/Spinner';
+import { Switch } from '@/components/ui/switch';
 
 export {
   PassStrengthBar,
@@ -66,7 +73,7 @@ export {
   CardHeader,
   CardTitle,
   Button,
-  Toaster,
+  // Toaster,
   LoginPage,
   Checkbox,
   Separator,
@@ -90,5 +97,12 @@ export {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  DashboardPage,
+  SettingPage,
+  Sidebar,
+  SidebarItems,
+  QrDialog,
+  Switch,
+  Spinner
 };

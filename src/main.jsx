@@ -9,10 +9,12 @@ import {
   ThemeProvider,
   App,
   LoginPage,
-  HomePage
+  HomePage,
+  DashboardPage,
+  SettingPage
 } from './components/Index';
-import { Toaster } from './components/Index';
-import DashboardPage from './pages/DashboardPage';
+// import { Toaster } from './components/Index';
+import DashboardLayout from './components/DashboardLayout';
 
 const router = createBrowserRouter([
   {
@@ -22,7 +24,20 @@ const router = createBrowserRouter([
       { path: '/register', element: <SignupPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/', element: <HomePage /> },
-      { path: '/dashboard', element: <DashboardPage /> }
+      {
+        path: '/dashboard',
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: '/dashboard',
+            element: <DashboardPage />
+          },
+          {
+            path: '/dashboard/settings',
+            element: <SettingPage />
+          }
+        ]
+      }
     ]
   }
 ]);
@@ -32,7 +47,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AppContextProvider>
         <RouterProvider router={router}>
-          <Toaster />
+          {/* <Toaster /> */}
         </RouterProvider>
       </AppContextProvider>
     </ThemeProvider>
