@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 import { ReloadIcon } from '@radix-ui/react-icons';
 // import { useToast } from '@/components/ui/use-toast';
@@ -24,6 +24,8 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/Index';
+import useAuth from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/use-toast';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -34,12 +36,16 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
-  // const { toast } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
+
   const [showPassword, setShowPassword] = useState(null);
   const [loader, setLoader] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const { progress, setProgress } = useContext(AppContext);
+  const { setAuth,auth } = useAuth();
 
   const {
     register,
@@ -65,15 +71,20 @@ const LoginPage = () => {
         },
         { withCredentials: true }
       );
+      console.log(response);
+      const accessToken = response?.data?.data?.accessToken;
+      const user = response?.data?.data?.user;
+      setAuth({ user, accessToken });
+      console.log(auth)
       if (rememberMe === true) {
         localStorage.setItem('accessToken', response.data.data.accessToken);
         console.log(rememberMe);
       }
-      // toast({
-      //   title: 'success',
-      //   description: `welcome back ${response.data.data.user.username}`
-      // });
-      navigate('/dashboard');
+      toast({
+        title: 'success',
+        description: `welcome back ${response?.data?.data?.user.fullName}`
+      });
+      navigate(from, { replace: true });
 
       setLoader(false);
       setProgress(100);
