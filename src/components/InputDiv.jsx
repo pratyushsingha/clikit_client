@@ -7,7 +7,7 @@ const InputDiv = forwardRef(function input(
 ) {
   const id = useId();
   return (
-    <div className={`grid w-full max-w-sm items-center gap-1.5 ${className}`}>
+    <div className={`grid w-full max-w-sm items-center gap-1.5 my-3 ${className}`}>
       <Label htmlFor={id}>{label}</Label>
       <Input
         type={type}

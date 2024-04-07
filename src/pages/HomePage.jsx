@@ -1,10 +1,4 @@
-import {
-  ChevronRight,
-  Rocket,
-  Copy,
-  QrCode,
-  Check,
-} from 'lucide-react';
+import { ChevronRight, Rocket, Copy, QrCode, Check } from 'lucide-react';
 import { z } from 'zod';
 import axios from 'axios';
 
@@ -102,42 +96,43 @@ const HomePage = () => {
         </div>
         {errors.url && <p className="text-red-600">{errors.url?.message}</p>}
       </form>
-      {shortenedUrl && (
-        <div className="bg-gray-800 rounded p-3 ">
-          <div className="flex justify-between">
-            <a href={`${shortenedUrl.shortenUrl}`} target="_blank">
-              <div className="flex mx-3">
-                <img
-                  className="h-10 w-10 rounded-full self-center mr-2"
-                  src={shortenedUrl.logo}
-                  alt={shortenedUrl.originalUrl}
-                />
-                <div className="">
-                  <p className="flex justify-start font-bold">
-                    {shortenedUrl.shortenUrl}
-                  </p>
-                  <p className="text-sm flex justify-start">
-                    {shortenedUrl?.originalUrl?.slice(0, 30)}...
-                  </p>
+      {shortenedUrl &&
+        shortenedUrl.map((url) => (
+          <div key={url._id} className="bg-gray-800 rounded p-3 ">
+            <div className="flex justify-between">
+              <a href={`${url.shortenUrl}`} target="_blank">
+                <div className="flex mx-3">
+                  <img
+                    className="h-10 w-10 rounded-full self-center mr-2"
+                    src={url.logo}
+                    alt={url.originalUrl}
+                  />
+                  <div className="">
+                    <p className="flex justify-start font-bold">
+                      {url.shortenUrl}
+                    </p>
+                    <p className="text-sm flex justify-start">
+                      {url?.originalUrl?.slice(0, 30)}...
+                    </p>
+                  </div>
                 </div>
+              </a>
+              <div className="flex space-x-4">
+                <button onClick={handleCopy}>
+                  {isCopied === true ? <Check /> : <Copy />}
+                </button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button onClick={() => generateQrCode(url._id)}>
+                      <QrCode />
+                    </button>
+                  </DialogTrigger>
+                  <QrDialog shortenedUrl={url} qrcode={qrcode} />
+                </Dialog>
               </div>
-            </a>
-            <div className="flex space-x-4">
-              <button onClick={handleCopy}>
-                {isCopied === true ? <Check /> : <Copy />}
-              </button>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button onClick={() => generateQrCode(shortenedUrl._id)}>
-                    <QrCode />
-                  </button>
-                </DialogTrigger>
-                <QrDialog shortenedUrl={shortenedUrl} qrcode={qrcode} />
-              </Dialog>
             </div>
           </div>
-        </div>
-      )}
+        ))}
     </div>
   );
 };

@@ -9,6 +9,7 @@ import {
 } from './Index';
 
 const QrDialog = ({ shortenedUrl, qrcode }) => {
+
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = qrcode;
@@ -27,7 +28,7 @@ const QrDialog = ({ shortenedUrl, qrcode }) => {
         </DialogDescription>
       </DialogHeader>
       <div className="flex justify-center items-center">
-        <img src={qrcode} alt={shortenedUrl.shortUrl} download />
+        <img src={qrcode} alt={shortenedUrl.shortenUrl} download />
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={handleDownload}>

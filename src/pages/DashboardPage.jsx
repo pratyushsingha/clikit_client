@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import {
   Container,
   Input,
@@ -29,6 +29,10 @@ import moment from 'moment';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { BadgePlus } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const shortUrlSchema = z.object({
   url: z
@@ -42,8 +46,9 @@ const shortUrlSchema = z.object({
 });
 
 const DashboardPage = () => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { progress, setProgress, generateQrCode, qrcode } =
+  const { progress, setProgress, generateQrCode, qrcode, setShortenedUrl } =
     useContext(AppContext);
   const [urls, setUrls] = useState([]);
   const [isExpirationTime, setIsExpirationTime] = useState(false);
@@ -103,14 +108,23 @@ const DashboardPage = () => {
       );
 
       // setShortenedUrl(response.data.data);
-      // console.log(response.data);
-      setLoading(false);
-      console.log(url, expiredIn);
+      // response.data.data.map((url) => console.log(url));
+      // console.log(url, expiredIn);
       // alert('shortened');
-      setUrls([...urls, response.data.data]);
+      console.log(urls);
+      // setUrls([...urls, response.data.data.map((url) => url)]);
+      response.data.data.map((url) => setUrls([...urls, url]));
+      // console.log(urls);
       setOpenDialog(false);
+      toast({
+        title: 'url shortened successfully'
+      });
+      setLoading(false);
     } catch (error) {
       console.error('Error shortening URL:', error);
+      toast({
+        title: `${error.message}`
+      });
       setLoading(false);
     }
   };
@@ -122,10 +136,15 @@ const DashboardPage = () => {
   return (
     <Container className="sm:col-span-10">
       <div className="flex justify-between">
-        <Input placeholder="search..." className="w-1/3" />
+        <Input placeholder="search..." className="md:w-1/3 w-2/3" />
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button className="hover:bg-green-400">Create</Button>
+            <Button className="hover:bg-green-400">
+              <div className="flex space-x-2">
+                <BadgePlus className='self-center'/>
+                <span className="hidden md:block">Create</span>
+              </div>
+            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -165,7 +184,9 @@ const DashboardPage = () => {
               </div>
               <DialogFooter>
                 <Button disabled={isSubmitting} type="submit">
-                  {loading && <Spinner />}
+                  {loading && (
+                    <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Create
                 </Button>
               </DialogFooter>
@@ -175,17 +196,20 @@ const DashboardPage = () => {
       </div>
       {urls.length > 0 ? (
         urls.map((url) => (
-          <div key={url._id} className="bg-[#1C1917] rounded-lg p-3 my-3">
+          <div
+            key={url._id}
+            className="dark:bg-[#1C1917] bg-slate-200  rounded-lg p-3 my-3"
+          >
             <div className="flex justify-between">
               <a href={`${url.shortenUrl}`} target="_blank">
                 <div className="flex mx-3">
                   <img
-                    className="h-8 w-8 rounded-full self-center mr-2"
+                    className="md:h-8 md:w-8 w-6 h-6 rounded-full self-center mr-2"
                     src={url.logo}
                     alt={url.originalUrl}
                   />
                   <div className="">
-                    <p className="flex justify-start font-bold">
+                    <p className="flex justify-start font-bold text-xs md:text-base">
                       {url.shortenUrl}
                     </p>
                     <p className="text-sm flex justify-start">
@@ -195,17 +219,17 @@ const DashboardPage = () => {
                 </div>
               </a>
               <div className="flex space-x-5">
-                <div className="space-y-1">
+                <div className="hidden md:block space-y-1">
                   <p className="text-sm">{moment(url.expiredIn).format('L')}</p>
                   <p className="text-xs text-center">expires at</p>
                 </div>
-                <div className="space-y-1 text-sm">
+                <div className="hidden md:block space-y-1">
                   <p className="text-sm">{moment(url.createdAt).format('L')}</p>
                   <p className="text-xs text-center">created at</p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost">
+                    <Button variant="ghost" size="sm">
                       <svg
                         width={15}
                         height={15}
@@ -224,15 +248,11 @@ const DashboardPage = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56">
                     <DropdownMenuGroup>
-                      <a
-                        href={url.shortenUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <Link to={`/dashboard/analytics/${url._id}`}>
                         <DropdownMenuItem className="cursor-pointer">
                           Analytics
                         </DropdownMenuItem>
-                      </a>
+                      </Link>
                       <DropdownMenuItem
                         onClick={() =>
                           window.navigator.clipboard.writeText(url.shortenUrl)
@@ -244,16 +264,11 @@ const DashboardPage = () => {
                       <DropdownMenuItem className="cursor-pointer">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <button
-                              onClick={() => generateQrCode(url._id)}
-                            >
+                            <button onClick={() => generateQrCode(url._id)}>
                               QrCode
                             </button>
                           </DialogTrigger>
-                          <QrDialog
-                            shortenedUrl={url.shortenUrl}
-                            qrcode={qrcode}
-                          />
+                          <QrDialog shortenedUrl={url} qrcode={qrcode} />
                         </Dialog>
                       </DropdownMenuItem>
                       <DropdownMenuItem

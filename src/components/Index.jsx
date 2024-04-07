@@ -15,6 +15,7 @@ import DashboardPage from '@/pages/DashboardPage';
 import SettingPage from '@/pages/SettingPage';
 import Sidebar from './Sidebar';
 import { SidebarItems } from '@/utils/Index';
+import AnalyticsChart from '@/components/AnalyticsChart';
 
 import {
   Card,
@@ -54,6 +55,8 @@ import { Separator } from './ui/separator';
 import QrDialog from '@/components/QrDialog';
 import Spinner from '@/components/loader/Spinner';
 import { Switch } from '@/components/ui/switch';
+import { Toaster } from './ui/toaster';
+
 
 export {
   PassStrengthBar,
@@ -73,7 +76,7 @@ export {
   CardHeader,
   CardTitle,
   Button,
-  // Toaster,
+  Toaster,
   LoginPage,
   Checkbox,
   Separator,
@@ -104,5 +107,6 @@ export {
   SidebarItems,
   QrDialog,
   Switch,
-  Spinner
+  Spinner,
+  AnalyticsChart
 };
