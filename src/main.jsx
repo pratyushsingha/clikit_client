@@ -11,10 +11,11 @@ import {
   LoginPage,
   HomePage,
   DashboardPage,
-  SettingPage
+  SettingPage,
+  Toaster
 } from './components/Index';
-// import { Toaster } from './components/Index';
 import DashboardLayout from './components/DashboardLayout';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 const router = createBrowserRouter([
   {
@@ -37,19 +38,20 @@ const router = createBrowserRouter([
             element: <SettingPage />
           }
         ]
+      },
+      {
+        path: '/dashboard/analytics/:id',
+        element: <AnalyticsPage />
       }
     ]
   }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <AppContextProvider>
-        <RouterProvider router={router}>
-          {/* <Toaster /> */}
-        </RouterProvider>
-      </AppContextProvider>
-    </ThemeProvider>
-  </React.StrictMode>
+  <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <AppContextProvider>
+      <RouterProvider router={router} />
+      <Toaster />
+    </AppContextProvider>
+  </ThemeProvider>
 );

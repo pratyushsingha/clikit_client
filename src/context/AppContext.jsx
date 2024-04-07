@@ -7,6 +7,7 @@ export default function AppContextProvider({ children }) {
   const [progress, setProgress] = useState(false);
   const [qrcode, setQrcode] = useState([]);
   const [shortenedUrl, setShortenedUrl] = useState([]);
+  const [user, setUser] = useState([]);
 
   const generateQrCode = async (url_id) => {
     try {
@@ -21,13 +22,32 @@ export default function AppContextProvider({ children }) {
     }
   };
 
+  const currentUser = async () => {
+    setProgress(progress + 30);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/users/current-user`,
+        { withCredentials: true }
+      );
+      setUser(response.data.data);
+      // console.log(user);
+      setProgress(progress + 100);
+    } catch (error) {
+      console.log(error);
+      setProgress(progress + 100);
+    }
+  };
+
   const value = {
     progress,
     setProgress,
     qrcode,
     generateQrCode,
     shortenedUrl,
-    setShortenedUrl
+    setShortenedUrl,
+    currentUser,
+    user,
+    setUser
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

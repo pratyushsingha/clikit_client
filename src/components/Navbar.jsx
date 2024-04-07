@@ -8,27 +8,16 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  AppContext
 } from './Index';
 import { ModeToggle } from '@/components/Index';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState([]);
-  const currentUser = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/users/current-user`,
-        { withCredentials: true }
-      );
-      setUser(response.data.data);
-      // console.log(user);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const { currentUser, setUser, user } = useContext(AppContext);
 
   const logoutUser = async () => {
     try {
@@ -47,7 +36,7 @@ const Navbar = () => {
 
   useEffect(() => {
     currentUser();
-  }, []);
+  }, [setUser]);
   return (
     <nav className="flex justify-between mx-10 my-10">
       <Link to={'/'}>
@@ -60,8 +49,8 @@ const Navbar = () => {
               <button className="rounded-full">
                 <img
                   className="h-10 w-10 rounded-full"
-                  src={user.avatar}
-                  alt={user.fullName}
+                  src={user?.avatar}
+                  alt={user?.fullName}
                 />
               </button>
             </DropdownMenuTrigger>
