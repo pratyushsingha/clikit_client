@@ -12,7 +12,6 @@ import {
   Dialog,
   DialogTrigger,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -33,6 +32,7 @@ import { Link } from 'react-router-dom';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { BadgePlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useDebounce } from '@uidotdev/usehooks';
 
 const shortUrlSchema = z.object({
   url: z
@@ -48,11 +48,14 @@ const shortUrlSchema = z.object({
 const DashboardPage = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { progress, setProgress, generateQrCode, qrcode, setShortenedUrl } =
+  const { progress, setProgress, generateQrCode, qrcode } =
     useContext(AppContext);
   const [urls, setUrls] = useState([]);
   const [isExpirationTime, setIsExpirationTime] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 500);
+  const [searchLoader, setSearchLoader] = useState(false);
 
   const {
     register,
@@ -129,19 +132,53 @@ const DashboardPage = () => {
     }
   };
 
+  const handleSearch = async (e) => {
+    if (e.target.value === '') {
+      return;
+    } else {
+      setQuery(e.target.value);
+    }
+  };
+
   useEffect(() => {
     userUrls();
   }, [setUrls]);
 
+  useEffect(() => {
+    const searchUrls = async () => {
+      setSearchLoader(true);
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/url/search?q=${debouncedQuery}`
+        );
+        setUrls(response.data.data);
+        setSearchLoader(false);
+      } catch (error) {
+        console.log(error);
+        toast({
+          variant: 'destructive',
+          title: `${error.message}`
+        });
+        setSearchLoader(false);
+      }
+    };
+    searchUrls();
+  }, [debouncedQuery]);
+
   return (
     <Container className="sm:col-span-10">
       <div className="flex justify-between">
-        <Input placeholder="search..." className="md:w-1/3 w-2/3" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="search..."
+          className="md:w-1/3 w-2/3"
+        />
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
             <Button className="hover:bg-green-400">
               <div className="flex space-x-2">
-                <BadgePlus className='self-center'/>
+                <BadgePlus className="self-center" />
                 <span className="hidden md:block">Create</span>
               </div>
             </Button>
