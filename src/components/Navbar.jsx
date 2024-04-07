@@ -14,12 +14,15 @@ import {
 import { ModeToggle } from '@/components/Index';
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
+import useAuth from '@/hooks/useAuth';
 
 const Navbar = () => {
+  const { auth,setAuth } = useAuth();
   const navigate = useNavigate();
   const { currentUser, setUser, user } = useContext(AppContext);
 
   const logoutUser = async () => {
+    setAuth({})
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/users/logout`,
@@ -27,7 +30,7 @@ const Navbar = () => {
         { withCredentials: true }
       );
       localStorage.removeItem('accessToken');
-      console.log(response);
+      // console.log(response);
       navigate('/');
     } catch (error) {
       console.log(error);
@@ -35,8 +38,8 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    currentUser();
-  }, [setUser]);
+    localStorage.getItem('accessToken') && currentUser();
+  }, []);
   return (
     <nav className="flex justify-between mx-10 my-10">
       <Link to={'/'}>
@@ -49,8 +52,8 @@ const Navbar = () => {
               <button className="rounded-full">
                 <img
                   className="h-10 w-10 rounded-full"
-                  src={user?.avatar}
-                  alt={user?.fullName}
+                  src={auth?.user?.avatar || user?.avatar}
+                  alt={auth.user?.fullName || user?.fullName}
                 />
               </button>
             </DropdownMenuTrigger>

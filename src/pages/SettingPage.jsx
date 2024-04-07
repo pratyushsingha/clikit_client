@@ -138,6 +138,10 @@ const SettingPage = () => {
     isSubmitSuccessful && currentUser();
   }, [isSubmitSuccessful]);
 
+  useEffect(() => {
+    currentUser();
+  }, []);
+
   return (
     <div className="sm:col-span-10">
       <div className="grid grid-4 gap-2 sm:grid-cols-2">

@@ -16,6 +16,8 @@ import {
 } from './components/Index';
 import DashboardLayout from './components/DashboardLayout';
 import AnalyticsPage from './pages/AnalyticsPage';
+import { AuthProvider } from './context/AuthContext';
+import AuthLayout from './components/AuthLayout';
 
 const router = createBrowserRouter([
   {
@@ -26,22 +28,32 @@ const router = createBrowserRouter([
       { path: '/login', element: <LoginPage /> },
       { path: '/', element: <HomePage /> },
       {
-        path: '/dashboard',
-        element: <DashboardLayout />,
+        element: <AuthLayout />,
         children: [
           {
             path: '/dashboard',
-            element: <DashboardPage />
-          },
-          {
-            path: '/dashboard/settings',
-            element: <SettingPage />
+            element: <DashboardLayout />,
+            children: [
+              {
+                path: '/dashboard',
+                element: <DashboardPage />
+              },
+              {
+                path: '/dashboard/settings',
+                element: <SettingPage />
+              }
+            ]
           }
         ]
       },
       {
-        path: '/dashboard/analytics/:id',
-        element: <AnalyticsPage />
+        element: <AuthLayout />,
+        children: [
+          {
+            path: '/dashboard/analytics/:id',
+            element: <AnalyticsPage />
+          }
+        ]
       }
     ]
   }
@@ -49,9 +61,11 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-    <AppContextProvider>
-      <RouterProvider router={router} />
-      <Toaster />
-    </AppContextProvider>
+    <AuthProvider>
+      <AppContextProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </AppContextProvider>
+    </AuthProvider>
   </ThemeProvider>
 );
