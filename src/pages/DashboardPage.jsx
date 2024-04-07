@@ -146,6 +146,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const searchUrls = async () => {
+      if (!debouncedQuery) return;
       setSearchLoader(true);
       try {
         const response = await axios.get(
@@ -168,12 +169,15 @@ const DashboardPage = () => {
   return (
     <Container className="sm:col-span-10">
       <div className="flex justify-between">
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="search..."
-          className="md:w-1/3 w-2/3"
-        />
+        <div className="flex space-x-2 md:w-1/3 w-2/3">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="search..."
+            className=""
+          />
+          {searchLoader && <Spinner />}
+        </div>
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
             <Button className="hover:bg-green-400">
