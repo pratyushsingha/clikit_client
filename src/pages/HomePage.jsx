@@ -57,7 +57,9 @@ const HomePage = () => {
 
   const handleCopy = async (e) => {
     e.preventDefault();
-    await window.navigator.clipboard.writeText(shortenedUrl.shortenUrl);
+    shortenedUrl.map((url) =>
+      window.navigator.clipboard.writeText(url.shortenUrl)
+    );
     setIsCopied(true);
 
     setTimeout(() => {
