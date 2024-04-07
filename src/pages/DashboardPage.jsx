@@ -146,11 +146,14 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const searchUrls = async () => {
-      if (!debouncedQuery) return;
+      if (!debouncedQuery) return userUrls();
       setSearchLoader(true);
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/url/search?q=${debouncedQuery}`
+          `${import.meta.env.VITE_BACKEND_URL}/url/search?q=${debouncedQuery}`,
+          {
+            withCredentials: true
+          }
         );
         setUrls(response.data.data);
         setSearchLoader(false);
