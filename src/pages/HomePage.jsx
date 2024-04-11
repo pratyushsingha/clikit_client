@@ -1,6 +1,7 @@
 import { ChevronRight, Rocket, Copy, QrCode, Check } from 'lucide-react';
 import { z } from 'zod';
 import axios from 'axios';
+import ConfettiExplosion from 'react-confetti-explosion';
 
 import {
   Button,
@@ -17,18 +18,20 @@ import Spinner from '@/components/loader/Spinner';
 // import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 import QrDialog from '@/components/QrDialog';
+import { useToast } from '@/components/ui/use-toast';
 
 const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })
 });
 
 const HomePage = () => {
-  // const { toast } = useToast();
+  const { toast } = useToast();
 
   const [isCopied, setIsCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const { generateQrCode, qrcode, shortenedUrl, setShortenedUrl } =
     useContext(AppContext);
+  const [isExploding, setIsExploding] = useState(false);
 
   const {
     register,
@@ -40,6 +43,7 @@ const HomePage = () => {
 
   const shortUrl = async ({ url }) => {
     setLoading(true);
+    setIsExploding(false);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/url/short`,
@@ -49,6 +53,7 @@ const HomePage = () => {
 
       setShortenedUrl(response.data.data);
       setLoading(false);
+      setIsExploding(true);
     } catch (error) {
       console.error('Error shortening URL:', error);
       toast({
@@ -90,6 +95,7 @@ const HomePage = () => {
           <Link to="/login">Get Started</Link>
         )}
         <ChevronRight />
+        {isExploding && <ConfettiExplosion />}
       </Button>
       <form onSubmit={handleSubmit(shortUrl)}>
         <div className="my-5 flex justify-center items-center border-2 rounded">
