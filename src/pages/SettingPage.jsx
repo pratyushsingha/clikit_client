@@ -94,6 +94,7 @@ const SettingPage = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const { currentUser, user } = useContext(AppContext);
+  const { token } = useAuth();
 
   const {
     register,
@@ -132,7 +133,7 @@ const SettingPage = () => {
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.response.data.message}`
+        description: `${error.response?.data?.message}`
       });
       setLoading(false);
     }
