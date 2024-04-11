@@ -33,6 +33,7 @@ import { ReloadIcon } from '@radix-ui/react-icons';
 import { BadgePlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@uidotdev/usehooks';
+import useAuth from '@/hooks/useAuth';
 
 const shortUrlSchema = z.object({
   url: z
@@ -50,6 +51,7 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(false);
   const { progress, setProgress, generateQrCode, qrcode } =
     useContext(AppContext);
+  const { token } = useAuth();
   const [urls, setUrls] = useState([]);
   const [isExpirationTime, setIsExpirationTime] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -58,7 +60,6 @@ const DashboardPage = () => {
   const [searchLoader, setSearchLoader] = useState(false);
   const [page, setPage] = useState(1);
   const [result, setResult] = useState([]);
-  const token = localStorage.getItem('accessToken');
 
   const {
     register,

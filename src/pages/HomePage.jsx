@@ -49,9 +49,6 @@ const HomePage = () => {
         `${import.meta.env.VITE_BACKEND_URL}/url/short`,
         { originalUrl: url },
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );

@@ -25,13 +25,15 @@ export default function AppContextProvider({ children }) {
   const currentUser = async () => {
     setProgress(progress + 30);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/users/current-user`,
-        { withCredentials: true }
-      );
-      setUser(response.data.data);
-      // console.log(user);
-      setProgress(progress + 100);
+      if (localStorage.getItem('accessToken') !== null) {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/users/current-user`,
+          { withCredentials: true }
+        );
+        setUser(response.data.data);
+        // console.log(user);
+        setProgress(progress + 100);
+      }
     } catch (error) {
       console.log(error);
       setProgress(progress + 100);
