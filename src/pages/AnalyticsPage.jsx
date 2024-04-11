@@ -29,6 +29,7 @@ const backHalfSchema = z.object({
 const AnalyticsPage = () => {
   const { toast } = useToast();
   const { id } = useParams();
+  const token = localStorage.getItem('accessToken');
   const {
     register,
     handleSubmit,
