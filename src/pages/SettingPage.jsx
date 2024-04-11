@@ -27,6 +27,8 @@ const UpdateUser = () => {
       email: user.email
     }
   });
+  const token = localStorage.getItem('accessToken');
+
 
   const updateUserDetails = async (data) => {
     setLoading(true);
