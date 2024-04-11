@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ReloadIcon } from '@radix-ui/react-icons';
+import { useToast } from '@/components/ui/use-toast';
 
 const backHalfSchema = z.object({
   urlId: z
@@ -26,6 +27,7 @@ const backHalfSchema = z.object({
 });
 
 const AnalyticsPage = () => {
+  const { toast } = useToast();
   const { id } = useParams();
   const {
     register,
@@ -65,9 +67,17 @@ const AnalyticsPage = () => {
         data,
         { withCredentials: true }
       );
+      toast({
+        title:`${response.data.message}`
+      });
       setLoading(false);
     } catch (error) {
       console.log(error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
       setLoading(false);
     }
   };

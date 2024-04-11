@@ -45,7 +45,7 @@ const LoginPage = () => {
   const [loader, setLoader] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const { progress, setProgress } = useContext(AppContext);
-  const { setAuth,auth } = useAuth();
+  const { setAuth, auth } = useAuth();
 
   const {
     register,
@@ -75,7 +75,7 @@ const LoginPage = () => {
       const accessToken = response?.data?.data?.accessToken;
       const user = response?.data?.data?.user;
       setAuth({ user, accessToken });
-      console.log(auth)
+      console.log(auth);
       if (rememberMe === true) {
         localStorage.setItem('accessToken', response.data.data.accessToken);
         console.log(rememberMe);
@@ -92,9 +92,8 @@ const LoginPage = () => {
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.message}`
+        description: `${error.response.data.message}`
       });
-      // console.log(error);
       setLoader(false);
       setProgress(progress + 100);
     }
@@ -104,7 +103,7 @@ const LoginPage = () => {
     <Container className="flex justify-center items-center mt-20">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">DevCom</CardTitle>
+          <CardTitle className="text-2xl">TinyTap</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>

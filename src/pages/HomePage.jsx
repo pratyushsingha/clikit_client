@@ -51,6 +51,11 @@ const HomePage = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error shortening URL:', error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
       setLoading(false);
     }
   };
