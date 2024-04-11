@@ -36,7 +36,12 @@ const UpdateUser = () => {
         {
           fullName: data.fullName
         },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       toast({
         title: `${response.data.message}`
