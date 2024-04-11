@@ -19,6 +19,7 @@ import Spinner from '@/components/loader/Spinner';
 import { Link } from 'react-router-dom';
 import QrDialog from '@/components/QrDialog';
 import { useToast } from '@/components/ui/use-toast';
+import useAuth from '@/hooks/useAuth';
 
 const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })
@@ -32,6 +33,7 @@ const HomePage = () => {
   const { generateQrCode, qrcode, shortenedUrl, setShortenedUrl } =
     useContext(AppContext);
   const [isExploding, setIsExploding] = useState(false);
+  const { token } = useAuth();
 
   const {
     register,
@@ -50,7 +52,7 @@ const HomePage = () => {
         { originalUrl: url },
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token ? token : ''}`
           },
           withCredentials: true
         }
@@ -64,7 +66,8 @@ const HomePage = () => {
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.response.data.message}`
+        description:
+          `${error.response?.data?.message}` || 'something went wrong'
       });
       setLoading(false);
     }

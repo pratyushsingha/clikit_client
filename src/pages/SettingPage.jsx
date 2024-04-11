@@ -10,10 +10,12 @@ import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { ReloadIcon } from '@radix-ui/react-icons';
+import useAuth from '@/hooks/useAuth';
 
 const UpdateUser = () => {
   const { toast } = useToast();
-  const { user, currentUser } = useContext(AppContext);
+  const { user, currentUser, setUser } = useContext(AppContext);
+  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const {
     register,
@@ -23,12 +25,10 @@ const UpdateUser = () => {
     watch
   } = useForm({
     defaultValues: {
-      fullName: user.fullName,
-      email: user.email
+      fullName: user?.fullName,
+      email: user?.email
     }
   });
-  const token = localStorage.getItem('accessToken');
-
 
   const updateUserDetails = async (data) => {
     setLoading(true);
@@ -62,7 +62,7 @@ const UpdateUser = () => {
 
   useEffect(() => {
     isSubmitSuccessful && currentUser();
-  }, [isSubmitSuccessful]);
+  }, [isSubmitSuccessful, setUser]);
 
   return (
     <form onSubmit={handleSubmit(updateUserDetails)}>
@@ -94,6 +94,7 @@ const SettingPage = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const { currentUser, user } = useContext(AppContext);
+  const { token } = useAuth();
 
   const {
     register,
@@ -117,7 +118,12 @@ const SettingPage = () => {
       const response = await axios.patch(
         `${import.meta.env.VITE_BACKEND_URL}/users/avatar`,
         formData,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       toast({
         title: `${response.data.message}`
@@ -127,7 +133,7 @@ const SettingPage = () => {
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.response.data.message}`
+        description: `${error.response?.data?.message}`
       });
       setLoading(false);
     }
