@@ -48,7 +48,12 @@ const HomePage = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/url/short`,
         { originalUrl: url },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
 
       setShortenedUrl(response.data.data);

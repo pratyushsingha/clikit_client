@@ -51,7 +51,12 @@ const AnalyticsPage = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/details/${id}`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       setValue('urlId', response.data.data.urlId);
     } catch (error) {
@@ -65,10 +70,15 @@ const AnalyticsPage = () => {
       const response = await axios.patch(
         `${import.meta.env.VITE_BACKEND_URL}/url/back-half/${id}`,
         data,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       toast({
-        title:`${response.data.message}`
+        title: `${response.data.message}`
       });
       setLoading(false);
     } catch (error) {
@@ -87,7 +97,12 @@ const AnalyticsPage = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/sevenDays/${id}`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       //   console.log(response.data.data);
       const dates = [];
@@ -139,7 +154,12 @@ const AnalyticsPage = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/analytics/${id}`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       const osClicks = [];
       const deviceClicks = [];

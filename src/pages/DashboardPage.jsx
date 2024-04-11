@@ -58,6 +58,7 @@ const DashboardPage = () => {
   const [searchLoader, setSearchLoader] = useState(false);
   const [page, setPage] = useState(1);
   const [result, setResult] = useState([]);
+  const token = localStorage.getItem('accessToken');
 
   const {
     register,
@@ -85,9 +86,15 @@ const DashboardPage = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/my?page=${page}&limit=10`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
-      // console.log(response.data.data);
+
+      // Handle response data
       setResult(response.data.data);
       setUrls(response.data.data.urls);
       setLoading(false);
@@ -108,7 +115,12 @@ const DashboardPage = () => {
     try {
       const response = await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/url/remove/${urlId}`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
       // console.log(response);
       setUrls(urls.filter((url) => url._id !== urlId));
@@ -127,7 +139,12 @@ const DashboardPage = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/url/short`,
         { originalUrl: url, expiredIn },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
       );
 
       // console.log(urls);
@@ -160,6 +177,9 @@ const DashboardPage = () => {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/url/search?q=${debouncedQuery}`,
           {
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
             withCredentials: true
           }
         );
@@ -322,7 +342,6 @@ const DashboardPage = () => {
                             </button>
                           </DialogTrigger>
                           <QrDialog shortenedUrl={url} qrcode={qrcode} />
-                          
                         </Dialog>
                       </DropdownMenuItem>
                       <DropdownMenuItem

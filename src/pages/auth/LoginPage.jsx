@@ -71,7 +71,6 @@ const LoginPage = () => {
         },
         { withCredentials: true }
       );
-      console.log(response);
       const accessToken = response?.data?.data?.accessToken;
       const user = response?.data?.data?.user;
       setAuth({ user, accessToken });
