@@ -12,12 +12,12 @@ import {
   HomePage,
   DashboardPage,
   SettingPage,
-  Toaster
+  Toaster,
+  DashboardLayout,
+  AuthProvider,
+  AuthLayout,
+  AnalyticsPage
 } from './components/Index';
-import DashboardLayout from './components/DashboardLayout';
-import AnalyticsPage from './pages/AnalyticsPage';
-import { AuthProvider } from './context/AuthContext';
-import AuthLayout from './components/AuthLayout';
 
 const router = createBrowserRouter([
   {

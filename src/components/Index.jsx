@@ -16,6 +16,9 @@ import SettingPage from '@/pages/SettingPage';
 import Sidebar from './Sidebar';
 import { SidebarItems } from '@/utils/Index';
 import AnalyticsChart from '@/components/AnalyticsChart';
+import DashboardLayout from './DashboardLayout';
+import AuthLayout from './AuthLayout';
+import AnalyticsPage from '@/pages/AnalyticsPage';
 
 import {
   Card,
@@ -56,7 +59,7 @@ import QrDialog from '@/components/QrDialog';
 import Spinner from '@/components/loader/Spinner';
 import { Switch } from '@/components/ui/switch';
 import { Toaster } from './ui/toaster';
-
+import { AuthProvider } from '@/context/AuthContext';
 
 export {
   PassStrengthBar,
@@ -108,5 +111,9 @@ export {
   QrDialog,
   Switch,
   Spinner,
-  AnalyticsChart
+  AnalyticsChart,
+  DashboardLayout,
+  AuthProvider,
+  AuthLayout,
+  AnalyticsPage
 };

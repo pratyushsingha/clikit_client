@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Container,
   Input,
@@ -56,6 +56,8 @@ const DashboardPage = () => {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 500);
   const [searchLoader, setSearchLoader] = useState(false);
+  const [page, setPage] = useState(1);
+  const [result, setResult] = useState([]);
 
   const {
     register,
@@ -69,20 +71,34 @@ const DashboardPage = () => {
     resolver: zodResolver(shortUrlSchema)
   });
 
+  const handlePrevClick = () => {
+    setPage((prev) => prev - 1);
+  };
+
+  const handleNextClick = () => {
+    setPage((prev) => prev + 1);
+  };
+
   const userUrls = async () => {
     setLoading(true);
     setProgress(progress + 30);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/url/my`,
+        `${import.meta.env.VITE_BACKEND_URL}/url/my?page=${page}&limit=10`,
         { withCredentials: true }
       );
-      // console.log(response.data.data.urls);
+      // console.log(response.data.data);
+      setResult(response.data.data);
       setUrls(response.data.data.urls);
       setLoading(false);
       setProgress(progress + 100);
     } catch (error) {
       console.log(error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
       setLoading(false);
       setProgress(progress + 100);
     }
@@ -97,7 +113,11 @@ const DashboardPage = () => {
       // console.log(response);
       setUrls(urls.filter((url) => url._id !== urlId));
     } catch (error) {
-      console.log(error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
     }
   };
 
@@ -110,14 +130,8 @@ const DashboardPage = () => {
         { withCredentials: true }
       );
 
-      // setShortenedUrl(response.data.data);
-      // response.data.data.map((url) => console.log(url));
-      // console.log(url, expiredIn);
-      // alert('shortened');
-      console.log(urls);
-      // setUrls([...urls, response.data.data.map((url) => url)]);
-      response.data.data.map((url) => setUrls([...urls, url]));
       // console.log(urls);
+      response.data.data.map((url) => setUrls([...urls, url]));
       setOpenDialog(false);
       toast({
         title: 'url shortened successfully'
@@ -126,23 +140,17 @@ const DashboardPage = () => {
     } catch (error) {
       console.error('Error shortening URL:', error);
       toast({
-        title: `${error.message}`
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
       });
       setLoading(false);
     }
   };
 
-  const handleSearch = async (e) => {
-    if (e.target.value === '') {
-      return;
-    } else {
-      setQuery(e.target.value);
-    }
-  };
-
   useEffect(() => {
     userUrls();
-  }, [setUrls]);
+  }, [setUrls, page]);
 
   useEffect(() => {
     const searchUrls = async () => {
@@ -161,7 +169,8 @@ const DashboardPage = () => {
         console.log(error);
         toast({
           variant: 'destructive',
-          title: `${error.message}`
+          title: 'error',
+          description: `${error.response.data.message}`
         });
         setSearchLoader(false);
       }
@@ -313,6 +322,7 @@ const DashboardPage = () => {
                             </button>
                           </DialogTrigger>
                           <QrDialog shortenedUrl={url} qrcode={qrcode} />
+                          
                         </Dialog>
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -335,6 +345,21 @@ const DashboardPage = () => {
       ) : (
         <p className="my-3 text-center">No urls found</p>
       )}
+
+      <div className="flex justify-center space-x-2">
+        <Button
+          disabled={result.hasPrevPage === false}
+          onClick={handlePrevClick}
+        >
+          Prev {'<<'}
+        </Button>
+        <Button
+          disabled={result.hasNextPage === false}
+          onClick={handleNextClick}
+        >
+          Next {'>>'}
+        </Button>
+      </div>
     </Container>
   );
 };

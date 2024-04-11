@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordStrength } from 'check-password-strength';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ReloadIcon } from '@radix-ui/react-icons';
 
@@ -23,6 +23,7 @@ import {
   Button,
   AppContext
 } from '@/components/Index';
+import { useToast } from '@/components/ui/use-toast';
 // import { useToast } from '@/components/ui/use-toast';
 
 const SignupSchema = z
@@ -47,7 +48,8 @@ const SignupSchema = z
   });
 
 const SignupPage = () => {
-  // const { toast } = useToast();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -81,20 +83,22 @@ const SignupPage = () => {
         },
         { withCredentials: true }
       );
+      toast({
+        title: 'success',
+        description: `welcome ${data.data.data.fullName.split(' ')[0]}`
+      });
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
       setLoader(false);
       setProgress(progress + 100);
-      // toast({
-      //   title: 'success',
-      //   description: `welcome ${data.data.data.fullName}`
-      // });
-      console.log(data.data.data.fullName.split(' ')[0]);
     } catch (error) {
       console.log(error);
-      // toast({
-      //   variant: 'destructive',
-      //   title: 'error',
-      //   description: `${error.message}`
-      // });
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
       setLoader(false);
       setProgress(progress + 100);
     }

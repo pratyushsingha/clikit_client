@@ -46,7 +46,8 @@ const UpdateUser = () => {
       console.log(error);
       toast({
         variant: 'destructive',
-        title: `${error.message}`
+        title: 'error',
+        description: `${error.response.data.message}`
       });
       setLoading(false);
     }
@@ -118,7 +119,8 @@ const SettingPage = () => {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: `${error.message}`
+        title: 'error',
+        description: `${error.response.data.message}`
       });
       setLoading(false);
     }
