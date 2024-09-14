@@ -18,6 +18,9 @@ import {
   AuthLayout,
   AnalyticsPage
 } from './components/Index';
+import CustomDomainPage from './pages/CustomDomainPage';
+import ManageDomain from './pages/ManageDomain';
+import PricingPage from './pages/PricingPage';
 
 const router = createBrowserRouter([
   {
@@ -27,6 +30,7 @@ const router = createBrowserRouter([
       { path: '/register', element: <SignupPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/', element: <HomePage /> },
+      { path: '/pricing', element: <PricingPage /> },
       {
         element: <AuthLayout />,
         children: [
@@ -41,6 +45,14 @@ const router = createBrowserRouter([
               {
                 path: '/dashboard/settings',
                 element: <SettingPage />
+              },
+              {
+                path: '/dashboard/custom-domains',
+                element: <CustomDomainPage />
+              },
+              {
+                path: '/dashboard/custom-domains/:domainId',
+                element: <ManageDomain />
               }
             ]
           }

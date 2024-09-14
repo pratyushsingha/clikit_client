@@ -1,23 +1,37 @@
 import { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
+  AppContext,
   Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Input,
   InputDiv,
-  Spinner,
-  AnalyticsChart
+  Spinner
 } from '@/components/Index';
+
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useToast } from '@/components/ui/use-toast';
 import useAuth from '@/hooks/useAuth';
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent
+} from '@/components/ui/chart';
+import Pichart from '@/components/Pichart';
+import {
+  osConfig,
+  chartConfig,
+  deviceConfig,
+  browserConfig
+} from '@/utils/Index';
+import ButtonsCard from '@/components/ui/tailwindcss-buttons';
 
 const backHalfSchema = z.object({
   urlId: z
@@ -26,7 +40,6 @@ const backHalfSchema = z.object({
     .min(2, { message: 'Minimum 2 characters' })
     .max(10, { message: 'Maximum 10 characters' })
 });
-
 const AnalyticsPage = () => {
   const { toast } = useToast();
   const { id } = useParams();
@@ -44,12 +57,20 @@ const AnalyticsPage = () => {
     resolver: zodResolver(backHalfSchema)
   });
 
-  const [sevenDaysLoading, setSevenDaysLoading] = useState(false);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const { user } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
-  const [totalViews, setTotalViews] = useState(Number);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [sevenDaysData, setSevenDaysData] = useState([]);
+  const [analyticsData, setAnalyticsData] = useState({
+    os: [],
+    device: [],
+    browsers: [],
+    totalViews: 0
+  });
+  const [url, setUrl] = useState([]);
 
   const urlDetails = async () => {
+    setAnalyticsLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/details/${id}`,
@@ -60,28 +81,39 @@ const AnalyticsPage = () => {
           withCredentials: true
         }
       );
+      setUrl(response.data.data);
+      console.log(response.data.data);
       setValue('urlId', response.data.data.urlId);
+      setAnalyticsLoading(false);
     } catch (error) {
       console.log(error);
+      setAnalyticsLoading(false);
     }
   };
 
   const updateBachHalf = async (data) => {
     setLoading(true);
+    const previousUrlId = url.urlId;
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_BACKEND_URL}/url/back-half/${id}`,
         data,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );
+      setUrl((prev) => ({
+        ...prev,
+        customUrl: url.customUrl.split('/')[0] + `/${response.data.data.urlId}`,
+        shortenUrl:
+          url.shortenUrl.split(`/${previousUrlId}`)[0] +
+          `/${response.data.data.urlId}`,
+        urlId: response.data.data.urlId
+      }));
       toast({
         title: `${response.data.message}`
       });
+
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -95,185 +127,94 @@ const AnalyticsPage = () => {
   };
 
   const sevenDaysAnalytics = async () => {
-    setSevenDaysLoading(true);
+    setAnalyticsLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/sevenDays/${id}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );
-      //   console.log(response.data.data);
-      const dates = [];
-      const clicks = [];
-      response.data.data.forEach((data) => {
-        dates.push(data._id);
-        clicks.push(data.clicks);
-      });
-      const barColors = 'rgba(34, 179, 87, 1)';
-      new Chart('sevenDaysAnalytics', {
-        type: 'bar',
-        data: {
-          labels: dates,
-          datasets: [
-            {
-              backgroundColor: barColors,
-              data: clicks,
-              label: 'Clicks'
-            }
-          ]
-        },
-        options: {
-          legend: { display: true },
-          title: {
-            display: true,
-            text: 'Seven Days Clicks Analytics'
-          },
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                  precision: 0
-                }
-              }
-            ]
-          }
-        }
-      });
-      setSevenDaysLoading(false);
+      setSevenDaysData(response.data.data);
+      setAnalyticsLoading(false);
     } catch (error) {
       console.log(error);
-      setSevenDaysLoading(false);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
+      setAnalyticsLoading(false);
     }
   };
 
   const urlAnalytics = async () => {
-    setAnalyticsLoading(true);
     try {
+      setAnalyticsLoading(true);
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/analytics/${id}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );
-      const osClicks = [];
-      const deviceClicks = [];
-      const browserClicks = [];
-      //   console.log(response.data.data);
-      response.data.data.map((data) => {
-        osClicks.push(data.linuxVisits, data.windowsVisits, data.androidVisits);
-        deviceClicks.push(
-          data.mobileVisits,
-          data.ipadVisits,
-          data.desktopVisits
-        );
-        browserClicks.push(data.chromeVisits, data.safariClicks);
-        setTotalViews(data.totalVisits);
-      });
-      // console.log(totalViews);
-
-      const barColors = 'rgba(34, 179, 87, 1)';
-      new Chart('osAnalytics', {
-        type: 'horizontalBar',
-        data: {
-          labels: ['🐧 Linux', '🪟 Windows', '📱 Android'],
-          datasets: [
-            {
-              backgroundColor: barColors,
-              data: osClicks,
-              label: 'Operating System'
-            }
-          ]
-        },
-        options: {
-          legend: { display: true },
-          title: {
-            display: false
+      setAnalyticsData((prev) => ({
+        ...prev,
+        totalViews: response.data.data.totalVisits,
+        os: [
+          {
+            type: 'linux',
+            clicks: response.data.data.linuxVisits,
+            fill: 'var(--color-linux)'
           },
-          scales: {
-            xAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                  precision: 0,
-                  align: 'end'
-                }
-              }
-            ]
-          }
-        }
-      });
-
-      new Chart('deviceAnalytics', {
-        type: 'horizontalBar',
-        data: {
-          labels: ['📱 Mobile', '📲 Ipad', '💻 Desktop'],
-          datasets: [
-            {
-              backgroundColor: barColors,
-              data: deviceClicks,
-              label: 'Device Clicks'
-            }
-          ]
-        },
-        options: {
-          legend: { display: true },
-          title: {
-            display: false
+          {
+            type: 'android',
+            clicks: response.data.data.androidVisits,
+            fill: 'var(--color-android)'
           },
-          scales: {
-            xAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                  precision: 0,
-                  align: 'center'
-                }
-              }
-            ]
+          {
+            type: 'windows',
+            clicks: response.data.data.windowsVisits,
+            fill: 'var(--color-linux)'
           }
-        }
-      });
-      new Chart('browserAnalytics', {
-        type: 'horizontalBar',
-        data: {
-          labels: ['🌎 Chrome', '🌐 Safari'],
-          datasets: [
-            {
-              backgroundColor: barColors,
-              data: browserClicks,
-              label: 'browser Clicks'
-            }
-          ]
-        },
-        options: {
-          legend: { display: true },
-          title: {
-            display: false
+        ],
+        device: [
+          {
+            type: 'mobile',
+            clicks: response.data.data.mobileDevices,
+            fill: 'var(--color-mobile)'
           },
-          scales: {
-            xAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                  precision: 0,
-                  align: 'center'
-                }
-              }
-            ]
+          {
+            type: 'ipad',
+            clicks: response.data.data.ipadVisits,
+            fill: 'var(--color-ipad)'
+          },
+          {
+            type: 'iPhone',
+            clicks: response.data.data.iPhoneVisits,
+            fill: 'var(--color-iphone)'
           }
-        }
-      });
+        ],
+        browsers: [
+          {
+            type: 'safari',
+            clicks: response.data.data.safariClicks,
+            fill: 'var(--color-safari)'
+          },
+          {
+            type: 'chrome',
+            clicks: response.data.data.chromeVisits,
+            fill: 'var(--color-chrome)'
+          }
+        ]
+      }));
       setAnalyticsLoading(false);
     } catch (error) {
       console.log(error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
       setAnalyticsLoading(false);
     }
   };
@@ -282,83 +223,91 @@ const AnalyticsPage = () => {
     sevenDaysAnalytics();
     urlAnalytics();
     urlDetails();
-  }, []);
+  }, [setAnalyticsData]);
 
-  return (
+  return analyticsLoading ? (
+    <div className="text-center">
+      <Spinner />
+    </div>
+  ) : (
     <>
-      <h1 className="h2">Analytics</h1>
-      {sevenDaysLoading && (
-        <div className="flex justify-center items-center">
-          <Spinner />
-        </div>
-      )}
+      <a
+        href={url.customUrl ? `https://${url.customUrl}` : url.shortenUrl}
+        target="_blank"
+      >
+        <button className="inline-flex h-12 my-4 animate-shimmer items-center justify-center rounded-md border border-green-600 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50">
+          🔗 {url.customUrl ?? url.shortenUrl} 🎊
+        </button>
+      </a>
+      <h1 className="h2 text-slate-300 mb-3">Url Insights 🔍</h1>
       <div className="grid gap-3 sm:grid-cols-2">
+        <Card className="border">
+          <CardHeader>
+            <CardTitle>Seven Days Click Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig}>
+              <BarChart accessibilityLayer data={sevenDaysData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="_id"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.slice(0, 5)}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <Bar dataKey="clicks" fill="var(--color-desktop)" radius={8} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
         <div>
-          <AnalyticsChart
-            id="sevenDaysAnalytics"
-            width="full"
-            maxWidth="xl"
-            height="54"
-          />
-        </div>
-        <div>
-          <Card className="h-[120px] border border-green-800">
+          <Card className="h-[120px]">
             <CardHeader>
               <CardTitle>Total Views</CardTitle>
             </CardHeader>
-            <CardContent className="h3">{totalViews}</CardContent>
+            <CardContent className="h3">{analyticsData.totalViews}</CardContent>
           </Card>
         </div>
       </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 my-3">
         <div className="flex-col sm:col-span-4">
-          <h3 className="h3 my-3">Operating Systems</h3>
-          {analyticsLoading && (
-            <div className="">
-              <Spinner />
-            </div>
-          )}
-          <AnalyticsChart
-            className=""
-            id="osAnalytics"
-            width="full"
-            maxWidth="md"
-            height="52"
+          <Pichart
+            chartTitle={'Operating Systems'}
+            config={osConfig}
+            data={analyticsData.os}
+            dataKey={'clicks'}
+            nameKey={'type'}
           />
         </div>
         <div className="flex-col sm:col-span-4">
-          <h3 className="h3 my-3">Devices</h3>
-          {analyticsLoading && (
-            <div className="">
-              <Spinner />
-            </div>
-          )}
-          <AnalyticsChart
-            id="deviceAnalytics"
-            width="full"
-            maxWidth="md"
-            height="52"
+          <Pichart
+            chartTitle={'Devices'}
+            config={deviceConfig}
+            data={analyticsData.device}
+            dataKey={'clicks'}
+            nameKey={'type'}
           />
         </div>
         <div className="flex-col sm:col-span-4">
-          <h3 className="h3 my-3">Browsers</h3>
-          {analyticsLoading && (
-            <div className="">
-              <Spinner />
-            </div>
-          )}
-          <AnalyticsChart
-            id="browserAnalytics"
-            width="full"
-            maxWidth="md"
-            height="52"
+          <Pichart
+            chartTitle={'Browsers'}
+            config={browserConfig}
+            data={analyticsData.browsers}
+            dataKey={'clicks'}
+            nameKey={'type'}
           />
         </div>
       </div>
       <div className="border border-dotted rounded border-green-500 p-5">
         <p className="h3 my-3 ">Edit Link</p>
-        <div className="grid grid-4 gap-3 sm:grid-cols-2">
+        <div
+          className={`grid grid-4 gap-3 ${user.userType === 'free' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+        >
           <p className="mb-5 font-semibold">Backhalf</p>
           <form onSubmit={handleSubmit(updateBachHalf)}>
             <div className="space-y-3">
@@ -368,6 +317,7 @@ const AnalyticsPage = () => {
                 disabled
               />
               <InputDiv
+                disabled={user.userType === 'free'}
                 value={watch('urlId')}
                 {...register('urlId', {
                   required: true
@@ -390,6 +340,13 @@ const AnalyticsPage = () => {
               </Button>
             </div>
           </form>
+          {user.userType === 'free' && (
+            <div className="flex justify-end items-end">
+              <Button className="w-6/12 ">
+                <Link to={'/pricing'}>Upgrade to Premium</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </>
