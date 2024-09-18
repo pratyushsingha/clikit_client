@@ -8,54 +8,54 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-  AppContext
+  DropdownMenuTrigger
 } from './Index';
 import { ModeToggle } from '@/components/Index';
 import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
-import useAuth from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useToast } from './ui/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const Navbar = () => {
-  const { auth,setAuth } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const { currentUser, setUser, user } = useContext(AppContext);
+  const { setUser, setIsAuthenticated, user, isAuthenticated } = useAuthStore();
 
   const logoutUser = async () => {
-    setAuth({})
     try {
-      const response = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/users/logout`,
         {},
         { withCredentials: true }
       );
-      localStorage.removeItem('accessToken');
-      // console.log(response);
+      setUser(null);
+      setIsAuthenticated(false);
       navigate('/');
     } catch (error) {
-      console.log(error);
+      console.log('logout error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description: `${error.response.data.message}`
+      });
     }
   };
 
-  useEffect(() => {
-    localStorage.getItem('accessToken') && currentUser();
-  }, []);
   return (
     <nav className="flex justify-between mx-10 my-10">
       <Link to={'/'}>
-        <p className="h2 cursor-pointer">Tinytap</p>
+        <p className="h2 cursor-pointer">CLIKIT</p>
       </Link>
       <div className="flex space-x-4">
-        {localStorage.getItem('accessToken') ? (
+        {isAuthenticated ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="rounded-full">
-                <img
-                  className="h-10 w-10 rounded-full"
-                  src={auth?.user?.avatar || user?.avatar}
-                  alt={auth.user?.fullName || user?.fullName}
-                />
-              </button>
+              <Avatar>
+                <AvatarImage src={user?.avatar || user?.avatar} />
+                <AvatarFallback>
+                  {user?.fullName.split('')[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
               <DropdownMenuGroup>

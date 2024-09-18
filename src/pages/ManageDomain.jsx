@@ -8,13 +8,7 @@ import {
 } from '@/components/ui/collapsible';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  AppContext,
-  Button,
-  Input,
-  InputDiv,
-  Spinner
-} from '@/components/Index';
+import { Button, Input, InputDiv, Spinner } from '@/components/Index';
 import { BadgePlus } from 'lucide-react';
 import moment from 'moment';
 import {
@@ -36,6 +30,8 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
+import { useQrcode } from '@/hooks/useQrcode';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const ManageDomain = () => {
   const { toast } = useToast();
@@ -43,8 +39,8 @@ const ManageDomain = () => {
   const [domainDetails, setDomainDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [urls, setUrls] = useState([]);
-  const { progress, setProgress, generateQrCode, qrcode } =
-    useContext(AppContext);
+  const { qrcode, generateQrCode } = useQrcode();
+  const { progress, setProgress } = useAuthStore();
 
   const handlePrevClick = () => {
     setPage((prev) => prev - 1);

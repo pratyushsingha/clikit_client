@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
-  AppContext,
   Button,
   Card,
   CardContent,
@@ -17,7 +16,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useToast } from '@/components/ui/use-toast';
-import useAuth from '@/hooks/useAuth';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import {
   ChartContainer,
@@ -32,6 +30,7 @@ import {
   browserConfig
 } from '@/utils/Index';
 import ButtonsCard from '@/components/ui/tailwindcss-buttons';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const backHalfSchema = z.object({
   urlId: z
@@ -43,7 +42,6 @@ const backHalfSchema = z.object({
 const AnalyticsPage = () => {
   const { toast } = useToast();
   const { id } = useParams();
-  const { token } = useAuth();
   const {
     register,
     handleSubmit,
@@ -57,7 +55,8 @@ const AnalyticsPage = () => {
     resolver: zodResolver(backHalfSchema)
   });
 
-  const { user } = useContext(AppContext);
+  // const { user } = useContext(AppContext);
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [sevenDaysData, setSevenDaysData] = useState([]);

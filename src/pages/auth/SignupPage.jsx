@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,11 +20,10 @@ import {
   CardTitle,
   Label,
   Input,
-  Button,
-  AppContext
+  Button
 } from '@/components/Index';
 import { useToast } from '@/components/ui/use-toast';
-// import { useToast } from '@/components/ui/use-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const SignupSchema = z
   .object({
@@ -67,11 +66,10 @@ const SignupPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [passStrength, setPassStrength] = useState(-1);
-  const [loader, setLoader] = useState(false);
-  const { progress, setProgress } = useContext(AppContext);
+  const { progress, setProgress, loading, setLoading } = useAuthStore();
 
   const signUp = async ({ fullName, email, password }) => {
-    setLoader(true);
+    setLoading(true);
     setProgress(progress + 30);
     try {
       const data = await axios.post(
@@ -90,7 +88,7 @@ const SignupPage = () => {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-      setLoader(false);
+      setLoading(false);
       setProgress(progress + 100);
     } catch (error) {
       console.log(error);
@@ -99,7 +97,7 @@ const SignupPage = () => {
         title: 'error',
         description: `${error.response.data.message}`
       });
-      setLoader(false);
+      setLoading(false);
       setProgress(progress + 100);
     }
   };
@@ -167,7 +165,9 @@ const SignupPage = () => {
             <p className="text-red-600">{errors.cnfPassword?.message}</p>
             <div>
               <Button disabled={isSubmitting} className="w-full">
-                {loader && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && (
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 create account
               </Button>
             </div>

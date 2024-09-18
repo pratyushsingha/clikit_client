@@ -9,11 +9,60 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { pricingData } from '@/utils/Index';
-import { useContext } from 'react';
-import { AppContext } from '@/components/Index';
+import { useState } from 'react';
+import axios from 'axios';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const PricingPage = () => {
-  const { user } = useContext(AppContext);
+  const { toast } = useToast();
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+
+  const subscriptionCheckoutHandler = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/subscription/subscribe`,
+        {
+          withCredentials: true
+        }
+      );
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY,
+        amount: parseInt(50000),
+        currency: 'INR',
+        name: 'Clikit',
+        description: 'short urls in seconds',
+        image:
+          'https://utfs.io/f/glvA31ChFgm40Kf0YTbLTHqgCOaNA8ypZu6IiRV24ltBjmrf',
+        subscription_id: data.data.id,
+        callback_url: `${import.meta.env.VITE_BACKEND_URL}/subscription/verify`,
+        prefill: {
+          name: user.fullName,
+          email: user.email,
+          contact: user.email
+        },
+        notes: {
+          address: 'Razorpay Corporate Office'
+        },
+        theme: {
+          color: '#22c55e'
+        }
+      };
+      console.log(options, data.data);
+
+      const paymentObj = new window.Razorpay(options);
+
+      paymentObj.open();
+      setLoading(false);
+    } catch (error) {
+      console.error('Razorpay payment error:', error);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-8 p-8 text-white justify-center">
       {pricingData.map((plan, index) => (
@@ -45,7 +94,16 @@ const PricingPage = () => {
                 {plan.buttonText}
               </Button>
             ) : (
-              <Button className="w-full mb-6">{plan.buttonText}</Button>
+              <Button
+                disabled={loading}
+                onClick={() => subscriptionCheckoutHandler()}
+                className="w-full mb-6 space-x-2"
+              >
+                {loading && (
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {plan.buttonText}
+              </Button>
             )}
             <ul className="space-y-2">
               {plan.features.map((feature, featureIndex) => (

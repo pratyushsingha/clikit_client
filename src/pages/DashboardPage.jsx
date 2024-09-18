@@ -1,9 +1,8 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Input,
   Button,
-  AppContext,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -33,7 +32,8 @@ import { ReloadIcon } from '@radix-ui/react-icons';
 import { BadgePlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@uidotdev/usehooks';
-import useAuth from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useQrcode } from '@/hooks/useQrcode';
 
 const shortUrlSchema = z.object({
   url: z
@@ -48,10 +48,8 @@ const shortUrlSchema = z.object({
 
 const DashboardPage = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const { progress, setProgress, generateQrCode, qrcode } =
-    useContext(AppContext);
-  const { token } = useAuth();
+  const { qrcode, generateQrCode } = useQrcode();
+  const { progress, setProgress, setLoading, loading } = useAuthStore();
   const [urls, setUrls] = useState([]);
   const [isExpirationTime, setIsExpirationTime] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -88,14 +86,10 @@ const DashboardPage = () => {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/url/my?page=${page}&limit=10`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );
 
-      // Handle response data
       setResult(response.data.data);
       setUrls(response.data.data.urls);
       setLoading(false);
@@ -117,9 +111,6 @@ const DashboardPage = () => {
       const response = await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/url/remove/${urlId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );
@@ -141,14 +132,10 @@ const DashboardPage = () => {
         `${import.meta.env.VITE_BACKEND_URL}/url/short`,
         { originalUrl: url, expiredIn },
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
           withCredentials: true
         }
       );
 
-      // console.log(urls);
       response.data.data.map((url) => setUrls([...urls, url]));
       setOpenDialog(false);
       toast({

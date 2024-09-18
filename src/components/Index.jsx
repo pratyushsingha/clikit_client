@@ -2,9 +2,7 @@ import PassStrengthBar from './PassStrengthBar';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import InputDiv from './InputDiv';
-import { AppContext } from '@/context/AppContext';
 import Container from './Container';
-import AppContextProvider from '@/context/AppContext';
 import SignupPage from '@/pages/auth/SignupPage';
 import ThemeProvider from './theme-provider';
 import App from '@/App';
@@ -59,16 +57,13 @@ import QrDialog from '@/components/QrDialog';
 import Spinner from '@/components/loader/Spinner';
 import { Switch } from '@/components/ui/switch';
 import { Toaster } from './ui/toaster';
-import { AuthProvider } from '@/context/AuthContext';
 
 export {
   PassStrengthBar,
   Label,
   Input,
   InputDiv,
-  AppContext,
   Container,
-  AppContextProvider,
   SignupPage,
   ThemeProvider,
   App,
@@ -113,7 +108,6 @@ export {
   Spinner,
   AnalyticsChart,
   DashboardLayout,
-  AuthProvider,
   AuthLayout,
   AnalyticsPage
 };

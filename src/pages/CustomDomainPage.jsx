@@ -1,11 +1,12 @@
 import Container from '@/components/Container';
-import { AppContext, Button, InputDiv, Spinner } from '@/components/Index';
+import { Button, InputDiv, Spinner } from '@/components/Index';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 import { instructions } from '@/utils/Index';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { Check, Settings } from 'lucide-react';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -27,7 +28,7 @@ const CustomDomainPage = () => {
   } = useForm({
     resolver: zodResolver(domainSchema)
   });
-  const { user } = useContext(AppContext);
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [domains, setDomains] = useState('');
 
@@ -112,7 +113,6 @@ const CustomDomainPage = () => {
             {...register('domain')}
           />
           {user.userType === 'free' && domains.length > 0 ? (
-  
             <Link to={'/pricing'}>
               <button
                 type="button"

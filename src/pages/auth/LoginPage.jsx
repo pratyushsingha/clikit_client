@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import {  useState } from 'react';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -7,7 +7,6 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 import { ReloadIcon } from '@radix-ui/react-icons';
-// import { useToast } from '@/components/ui/use-toast';
 import {
   Checkbox,
   Label,
@@ -16,7 +15,6 @@ import {
   InputDiv,
   Container,
   Separator,
-  AppContext,
   Card,
   CardContent,
   CardDescription,
@@ -24,8 +22,8 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/Index';
-import useAuth from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -42,10 +40,16 @@ const LoginPage = () => {
   const from = location.state?.from?.pathname || '/dashboard';
 
   const [showPassword, setShowPassword] = useState(null);
-  const [loader, setLoader] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const { progress, setProgress } = useContext(AppContext);
-  const { setAuth, auth } = useAuth();
+
+  const {
+    setUser,
+    setLoading,
+    setIsAuthenticated,
+    loading,
+    progress,
+    setProgress
+  } = useAuthStore();
 
   const {
     register,
@@ -60,7 +64,7 @@ const LoginPage = () => {
   });
 
   const loginUser = async ({ email, password }) => {
-    setLoader(true);
+    setLoading(true);
     setProgress(progress + 30);
     try {
       const response = await axios.post(
@@ -71,21 +75,23 @@ const LoginPage = () => {
         },
         { withCredentials: true }
       );
-      const accessToken = response?.data?.data?.accessToken;
-      const user = response?.data?.data?.user;
-      setAuth({ user, accessToken });
-      console.log(auth);
-      if (rememberMe === true) {
-        localStorage.setItem('accessToken', response.data.data.accessToken);
-        console.log(rememberMe);
-      }
+      // const accessToken = response?.data?.data?.accessToken;
+      // const user = response?.data?.data?.user;
+      // setAuth({ user, accessToken });
+      // console.log(auth);
+      setUser(response.data.data.user);
+      setIsAuthenticated(true);
+      // if (rememberMe === true) {
+      //   localStorage.setItem('accessToken', response.data.data.accessToken);
+      //   console.log(rememberMe);
+      // }
       toast({
         title: 'success',
         description: `welcome back ${response?.data?.data?.user.fullName}`
       });
       navigate(from, { replace: true });
 
-      setLoader(false);
+      setLoading(false);
       setProgress(100);
     } catch (error) {
       toast({
@@ -93,7 +99,7 @@ const LoginPage = () => {
         title: 'error',
         description: `${error.response.data.message}`
       });
-      setLoader(false);
+      setLoading(false);
       setProgress(progress + 100);
     }
   };
@@ -160,7 +166,9 @@ const LoginPage = () => {
             </div>
             <div>
               <Button disabled={isSubmitting} className="w-full">
-                {loader && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && (
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 login
               </Button>
             </div>

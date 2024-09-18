@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 
 import {
-  AppContextProvider,
   SignupPage,
   ThemeProvider,
   App,
@@ -14,13 +13,14 @@ import {
   SettingPage,
   Toaster,
   DashboardLayout,
-  AuthProvider,
   AuthLayout,
   AnalyticsPage
 } from './components/Index';
 import CustomDomainPage from './pages/CustomDomainPage';
 import ManageDomain from './pages/ManageDomain';
 import PricingPage from './pages/PricingPage';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailed from './pages/PaymentFailed';
 
 const router = createBrowserRouter([
   {
@@ -30,7 +30,6 @@ const router = createBrowserRouter([
       { path: '/register', element: <SignupPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/', element: <HomePage /> },
-      { path: '/pricing', element: <PricingPage /> },
       {
         element: <AuthLayout />,
         children: [
@@ -55,16 +54,14 @@ const router = createBrowserRouter([
                 element: <ManageDomain />
               }
             ]
-          }
-        ]
-      },
-      {
-        element: <AuthLayout />,
-        children: [
+          },
           {
             path: '/dashboard/analytics/:id',
             element: <AnalyticsPage />
-          }
+          },
+          { path: '/pricing', element: <PricingPage /> },
+          { path: '/payment-success', element: <PaymentSuccess /> },
+          { path: '/payment-failed', element: <PaymentFailed /> }
         ]
       }
     ]
@@ -73,11 +70,7 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-    <AuthProvider>
-      <AppContextProvider>
-        <RouterProvider router={router} />
-        <Toaster />
-      </AppContextProvider>
-    </AuthProvider>
+    <RouterProvider router={router} />
+    <Toaster />
   </ThemeProvider>
 );
