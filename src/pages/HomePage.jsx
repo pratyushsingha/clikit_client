@@ -8,8 +8,7 @@ import {
   Input,
   Dialog,
   DialogTrigger,
-  Label,
-  AppContext
+  Label
 } from '@/components/Index';
 import { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,7 +18,9 @@ import Spinner from '@/components/loader/Spinner';
 import { Link } from 'react-router-dom';
 import QrDialog from '@/components/QrDialog';
 import { useToast } from '@/components/ui/use-toast';
-import useAuth from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useQrcode } from '@/hooks/useQrcode';
+import { useUrlStore } from '@/store/useUrlStore';
 
 const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })
@@ -29,11 +30,10 @@ const HomePage = () => {
   const { toast } = useToast();
 
   const [isCopied, setIsCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { generateQrCode, qrcode, shortenedUrl, setShortenedUrl } =
-    useContext(AppContext);
   const [isExploding, setIsExploding] = useState(false);
-  const { token } = useAuth();
+  const { generateQrCode, qrcode } = useQrcode();
+  const { shortenedUrl, setShortenedUrl, loading, setLoading } = useUrlStore();
+  const { isAuthenticated } = useAuthStore();
 
   const {
     register,
@@ -51,9 +51,6 @@ const HomePage = () => {
         `${import.meta.env.VITE_BACKEND_URL}/url/short`,
         { originalUrl: url },
         {
-          headers: {
-            Authorization: `Bearer ${token ? token : ''}`
-          },
           withCredentials: true
         }
       );
@@ -97,7 +94,7 @@ const HomePage = () => {
         management experience.
       </span>
       <Button className="bgGradiant text-white my-2">
-        {localStorage.getItem('accessToken') ? (
+        {isAuthenticated ? (
           <Link to="/dashboard">Get Started</Link>
         ) : (
           <Link to="/login">Get Started</Link>

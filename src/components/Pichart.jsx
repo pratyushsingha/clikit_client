@@ -4,8 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-  AppContext
+  CardDescription
 } from '@/components/Index';
 
 import { PieChart, Pie } from 'recharts';
@@ -14,11 +13,11 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-import { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const Pichart = ({ chartTitle, config, data, dataKey, nameKey }) => {
-  const { user } = useContext(AppContext);
+  const { user } = useAuthStore();
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
