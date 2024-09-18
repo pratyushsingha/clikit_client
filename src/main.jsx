@@ -21,6 +21,8 @@ import ManageDomain from './pages/ManageDomain';
 import PricingPage from './pages/PricingPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,8 @@ const router = createBrowserRouter([
       { path: '/register', element: <SignupPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/', element: <HomePage /> },
+      { path: '/forget-password', element: <ForgotPassword /> },
+      { path: '/reset-password', element: <ResetPassword /> },
       {
         element: <AuthLayout />,
         children: [
