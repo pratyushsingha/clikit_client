@@ -35,9 +35,10 @@ const CustomDomainPage = () => {
   const addDomain = async ({ domain }) => {
     setLoading(true);
     try {
+      const domainName = domain.replace('https://', '').replace('http://', '');
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/domain`,
-        { domain },
+        { domain: domainName },
         {
           withCredentials: true
         }
@@ -116,9 +117,10 @@ const CustomDomainPage = () => {
             <Link to={'/pricing'}>
               <button
                 type="button"
-                className="inline-flex  self-center mt-7 h-10  animate-shimmer items-center justify-center rounded-md border border-green-600 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                className="flex space-x-3 self-center mt-7 h-10  animate-shimmer items-center justify-center rounded-md border border-green-600 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
               >
-                💎 Upgrade to add more domains
+                💎
+                <span>Upgrade</span>
               </button>
             </Link>
           ) : (

@@ -32,6 +32,10 @@ import {
 } from '@/components/ui/dialog';
 import { useQrcode } from '@/hooks/useQrcode';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useDebounce } from '@uidotdev/usehooks';
+import { urlSchema } from './HomePage';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 const ManageDomain = () => {
   const { toast } = useToast();
@@ -40,7 +44,23 @@ const ManageDomain = () => {
   const [loading, setLoading] = useState(false);
   const [urls, setUrls] = useState([]);
   const { qrcode, generateQrCode } = useQrcode();
-  const { progress, setProgress } = useAuthStore();
+  const [urlLoader, setUrlLoader] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch
+  } = useForm({
+    resolver: zodResolver(urlSchema)
+  });
+
+  const url = watch('url');
+  const debouncedUrl = useDebounce(url, 500);
+
+  const setPage = (page) => {
+    console.log;
+  };
 
   const handlePrevClick = () => {
     setPage((prev) => prev - 1);
@@ -118,6 +138,36 @@ const ManageDomain = () => {
     getUrlsByDomain();
   }, [domainId]);
 
+  useEffect(() => {
+    const shortUrlWithDomain = async () => {
+      if (!debouncedUrl) return;
+      setUrlLoader(true);
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/url/short/${domainId}`,
+          {
+            originalUrl: debouncedUrl
+          },
+          {
+            withCredentials: true
+          }
+        );
+        console.log(response.data.data);
+        setUrlLoader(false);
+        // setUrls((prev) => [response.data.data, ...prev]);
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: error.response?.data?.message || 'Something went wrong'
+        });
+        setUrlLoader(false);
+      }
+    };
+    shortUrlWithDomain();
+  }, [debouncedUrl]);
+
   return (
     <Container className="sm:col-span-10 justify-center items-center">
       {loading && <Spinner />}
@@ -138,21 +188,21 @@ const ManageDomain = () => {
               <hr />
               <p className="my-2 font-serif">
                 You can forward these instructions to a tech person in your
-                company. Need help? Contact us at support@tinytap.live
+                company. Need help? Contact us at support@clikit.live
               </p>
               <hr />
               <p className="my-9 font-serif">
                 These instructions will guide you in setting up domain
                 test.pratyushsingh.me to create short links by SHORT.IO. After
                 setup, the domain will point all HTTP and HTTPS requests to
-                SHORT.IO servers, so that's how short links will work.
+                CLIKIT.LIVE servers, so that's how short links will work.
               </p>
               <p className="font-serif">
                 Step 1: Go to your domain registrar, sign in, and locate the
                 domain DNS Manage section.
               </p>
               <p className="font-serif">
-                Step 2: Create a new type <code>TXT</code> record with a name{' '}
+                Step 2: Create a new type <code>CNAME</code> record with a name{' '}
                 <code>{domainDetails.txtRecord?.name}</code> (no quotes) and
                 value <code>{domainDetails.txtRecord?.value}</code> (no quotes).
                 Save changes.
@@ -160,10 +210,9 @@ const ManageDomain = () => {
               <div className="my-5 font-serif">
                 <p className="mb-2">So you will see a new record:</p>
                 <span className="flex space-x-3">
-                  <code>{domainDetails.txtRecord?.recordType}</code>{' '}
-                  <code>{domainDetails.txtRecord?.name}</code>
+                  <code>{domainDetails.cnameRecord?.name}</code>
                   {'      '}
-                  <code>{domainDetails.txtRecord?.value}</code>
+                  <code>{domainDetails.cnameRecord?.value}</code>
                 </span>
               </div>
               <p className="my-3 font-serif">
@@ -180,15 +229,17 @@ const ManageDomain = () => {
         </div>
       ) : (
         <div className="flex flex-col space-y-4">
-          <div className="flex w-full space-x-3">
+          <div className="flex justify-center w-full space-x-3">
             <Input
               className="w-full md:w-7/12"
               placeholder="Paste a long URL here..."
+              {...register('url')}
             />
             <Button>
               <BadgePlus />
             </Button>
           </div>
+          {errors.url && <p className="text-red-600">{errors.url?.message}</p>}
           <div className="w-full md:w-11/12 flex flex-col space-y-3">
             {urls.urlCount > 0 ? (
               urls.urls.map((url) => (
