@@ -8,7 +8,7 @@ const AuthLayout = () => {
   return isAuthenticated ? (
     <Outlet />
   ) : (
-    <Navigate to="/login" state={{ from: location }} replace />
+    <Navigate to="/login" />
   );
 };
 

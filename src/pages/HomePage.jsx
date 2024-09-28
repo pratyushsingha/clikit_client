@@ -22,7 +22,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useQrcode } from '@/hooks/useQrcode';
 import { useUrlStore } from '@/store/useUrlStore';
 
-const urlSchema = z.object({
+export const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })
 });
 
