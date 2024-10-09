@@ -101,10 +101,6 @@ const ManageDomain = () => {
     console.log(domainId);
     try {
       await verifyDomainOwnership(domainId);
-      // toast({
-      //   title: 'Success',
-      //   description: 'Domain verified successfully!'
-      // });
     } catch (error) {
       console.log(error);
       toast({
@@ -251,7 +247,9 @@ const ManageDomain = () => {
 
               <div className="flex justify-end items-end space-x-3">
                 <Button>Copy</Button>
-                <Button onClick={verifyDomainOwnership}>Refresh</Button>
+                <Button onClick={() => verifyDomainOwnership(domainId)}>
+                  Refresh
+                </Button>
               </div>
             </CollapsibleContent>
           </Collapsible>
