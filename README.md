@@ -1,8 +1,75 @@
-# React + Vite
+# URL Shortener Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a URL shortener application built with Vite and React. It provides user authentication, URL analytics, and custom domain integration. The application operates on a freemium model.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **User Authentication**: Secure user registration and login.
+- **URL Shortening**: Shorten long URLs for easier sharing.
+- **URL Analytics**: Track usage statistics of shortened URLs.
+- **Custom Domain Integration**: Add custom domains for shortened URLs.
+- **Freemium Model**: Free users can add one custom domain; premium users can add multiple.
+
+## Environment Variables
+
+Before running the application, rename the `.env.example` file to `.env` and fill all the environment variables.
+
+
+
+## Run Locally
+
+Clone the project
+
+```bash
+  git clone https://github.com/pratyushsingha/clikit_client
+```
+
+Go to the project directory
+
+```bash
+  cd clikit_client
+```
+
+Install dependencies
+
+```bash
+  npm install
+```
+
+Start the server
+
+```bash
+  npm run dev
+```
+the client should be accessable at `http://localhost:5173`.
+
+or
+
+## Using Docker
+
+Clone the project
+
+```bash
+  git clone https://github.com/pratyushsingha/clikit_client
+```
+
+Go to the project directory
+
+```bash
+  cd clikit_client
+```
+
+Build the docker image
+
+```bash
+  docker build -t clikit_client .
+```
+
+Start the server
+
+```bash
+  docker run -p 5173:5173 clikit_client
+```
+## server
+For setting up the django backend server of this project, navigate to https://github.com/pratyushsingha/clikit_server & follow the Setup Instructions.
+
