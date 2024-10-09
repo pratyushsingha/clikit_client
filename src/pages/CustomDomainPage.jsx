@@ -13,8 +13,11 @@ import { z } from 'zod';
 const domainSchema = z.object({
   domain: z
     .string()
-    .nonempty("URL can't be empty")
-    .url({ message: 'Invalid URL' })
+    .nonempty("Domain can't be empty")
+    .regex(
+      /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,6}?$/,
+      { message: 'Invalid domain or subdomain' }
+    )
 });
 
 const CustomDomainPage = () => {

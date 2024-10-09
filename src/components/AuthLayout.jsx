@@ -5,18 +5,35 @@ import { Spinner } from './Index';
 
 const AuthLayout = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading, authStatus } = useAuthStore();
+  const { isAuthenticated, authloader, authStatus } = useAuthStore();
   const location = useLocation();
 
-  if (loading) <Spinner />;
+  useEffect(() => {
+    authStatus();
+  }, [authStatus]);
 
   useEffect(() => {
-    isAuthenticated && location.pathname === '/login'
-      ? navigate('/dashboard')
-      : navigate(location.pathname);
-  }, [authStatus, isAuthenticated, location.pathname, navigate]);
+    if (!authloader) {
+      if (
+        isAuthenticated &&
+        (location.pathname === '/login' || location.pathname === '/register')
+      ) {
+        navigate('/dashboard');
+      } else if (!isAuthenticated) {
+        navigate('/login');
+      }
+    }
+  }, [location.pathname, navigate]);
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (authloader) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
 
 export default AuthLayout;

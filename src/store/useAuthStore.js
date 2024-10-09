@@ -5,6 +5,7 @@ export const useAuthStore = create((set) => ({
   user: null,
   loading: false,
   isAuthenticated: false,
+  authloader: true,
   progress: 0,
   setUser: (state) => set({ user: state }),
   setLoading: (state) => set({ loading: state }),
@@ -106,7 +107,7 @@ export const useAuthStore = create((set) => ({
     }
   },
   authStatus: async () => {
-    set({ loading: true });
+    set({ authloader: true });
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/users/auth-status`,
@@ -114,13 +115,14 @@ export const useAuthStore = create((set) => ({
           withCredentials: true
         }
       );
+      console.log(response.data.data.isAuthenticated);
       set({
         isAuthenticated: response.data.data.isAuthenticated,
-        loading: false
+        authloader: false
       });
     } catch (error) {
       console.error('authStatus error:', error);
-      set({ loading: false });
+      set({ authloader: false });
       throw error;
     }
   },
