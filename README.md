@@ -1,6 +1,6 @@
-# URL Shortener Application
+# clikit-short urls in seconds
 
-This is a URL shortener application built with Vite and React. It provides user authentication, URL analytics, and custom domain integration. The application operates on a freemium model.
+This is a URL shortener utility. It provides user authentication, URL analytics, and custom domain integration. The application operates on a freemium model.
 
 ## Features
 
