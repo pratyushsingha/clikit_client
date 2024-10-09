@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ReloadIcon } from '@radix-ui/react-icons';
@@ -15,7 +14,6 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useNavigate } from 'react-router-dom';
 
 const emailSchema = z.object({
   email: z
@@ -36,20 +34,14 @@ const ForgotPassword = () => {
     },
     resolver: zodResolver(emailSchema)
   });
-  const { setLoading, loading } = useAuthStore();
+  const { loading, sendPasswordResetEmail } = useAuthStore();
 
-  const sentResetPasswordEmail = async ({ email }) => {
-    setLoading(true);
+  const resetPasswordHandler = async ({ email }) => {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/users/forgot-password`,
-        { email }
-      );
-      console.log(response);
+      const response = await sendPasswordResetEmail(email);
       toast({
         title: response.data.message
       });
-      setLoading(false);
     } catch (error) {
       console.log(`reset password email error: ${error}`);
       toast({
@@ -57,13 +49,12 @@ const ForgotPassword = () => {
         title: 'error',
         description: `${error.response.data.message}`
       });
-      setLoading(false);
     }
   };
 
   return (
     <div className="flex justify-center items-center h-screen">
-      <form onSubmit={handleSubmit(sentResetPasswordEmail)}>
+      <form onSubmit={handleSubmit(resetPasswordHandler)}>
         <Card className=" p-5">
           <CardTitle className="mb-3">Forgot Password</CardTitle>
           <CardDescription className="mb-5">

@@ -1,15 +1,22 @@
 import { useAuthStore } from '@/store/useAuthStore';
-import { useLocation, Outlet, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation, Outlet, useNavigate, Navigate } from 'react-router-dom';
+import { Spinner } from './Index';
 
 const AuthLayout = () => {
-  const { isAuthenticated, loading } = useAuthStore();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading, authStatus } = useAuthStore();
   const location = useLocation();
 
-  return isAuthenticated ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/login" />
-  );
+  if (loading) <Spinner />;
+
+  useEffect(() => {
+    isAuthenticated && location.pathname === '/login'
+      ? navigate('/dashboard')
+      : navigate(location.pathname);
+  }, [authStatus, isAuthenticated, location.pathname, navigate]);
+
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default AuthLayout;

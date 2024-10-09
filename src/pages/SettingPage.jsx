@@ -11,9 +11,6 @@ import {
   PassStrengthBar,
   Spinner,
   CardTitle,
-  Dialog,
-  DialogTrigger,
-  DialogContent
 } from '@/components/Index';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
@@ -49,7 +46,6 @@ const UpdateUser = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isDirty, isTouched, isSubmitSuccessful, isSubmitting },
     watch,
     reset
@@ -242,7 +238,6 @@ const ChangePassword = () => {
 };
 
 const SettingPage = () => {
-  const { fetchCurrentUser } = useCurrentUser();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 

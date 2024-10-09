@@ -14,15 +14,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Label,
-  InputDiv,
   Separator,
   QrDialog,
   Switch,
   Spinner
 } from '@/components/Index';
-import axios from 'axios';
 import moment from 'moment';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,12 +47,26 @@ import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@uidotdev/usehooks';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useQrcode } from '@/hooks/useQrcode';
+import usePaginationStore from '@/store/usePaginationStore';
+import { useUrlStore } from '@/store/useUrlStore';
+import { useDomainStore } from '@/store/domainStore';
 
 const shortUrlSchema = z.object({
   url: z
     .string()
     .nonempty("URL can't be empty")
     .url({ message: 'Invalid URL' }),
+  domainId: z
+    .string()
+    .optional()
+    .refine(
+      (value) => {
+        return value === undefined || /^[a-fA-F0-9]{24}$/.test(value);
+      },
+      {
+        message: 'Invalid Domain ID.'
+      }
+    ),
   expiredIn: z
     .string()
     .optional()
@@ -48,52 +75,34 @@ const shortUrlSchema = z.object({
 
 const DashboardPage = () => {
   const { toast } = useToast();
-  const { qrcode, generateQrCode } = useQrcode();
-  const { progress, setProgress, setLoading, loading } = useAuthStore();
-  const [urls, setUrls] = useState([]);
-  const [isExpirationTime, setIsExpirationTime] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 500);
+  const [isExpirationTime, setIsExpirationTime] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [searchLoader, setSearchLoader] = useState(false);
-  const [page, setPage] = useState(1);
-  const [result, setResult] = useState([]);
+  const [sortFilter, setSortFilter] = useState('all');
 
+  const { qrcode, generateQrCode } = useQrcode();
+  const { progress, setProgress, setLoading, loading } = useAuthStore();
+  const { dashboardPageNo, setDashboardPageNo } = usePaginationStore();
+  const { domains, loading: domainLoader, getAllDomains } = useDomainStore();
   const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm({
-    defaultValues: {
-      url: '',
-      expiredIn: ''
-    },
+    shortUrl,
+    deleteUrl,
+    loading: urlLoader,
+    userUrls,
+    urls,
+    searchUrls,
+    shortUrlByDomain
+  } = useUrlStore();
+
+  const form = useForm({
     resolver: zodResolver(shortUrlSchema)
   });
 
-  const handlePrevClick = () => {
-    setPage((prev) => prev - 1);
-  };
-
-  const handleNextClick = () => {
-    setPage((prev) => prev + 1);
-  };
-
-  const userUrls = async () => {
-    setLoading(true);
-    setProgress(progress + 30);
+  const fetchUserUrls = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/url/my?page=${page}&limit=10`,
-        {
-          withCredentials: true
-        }
-      );
-
-      setResult(response.data.data);
-      setUrls(response.data.data.urls);
-      setLoading(false);
-      setProgress(progress + 100);
+      await userUrls();
     } catch (error) {
       console.log(error);
       toast({
@@ -101,47 +110,20 @@ const DashboardPage = () => {
         title: 'error',
         description: `${error.response.data.message}`
       });
-      setLoading(false);
-      setProgress(progress + 100);
     }
   };
 
-  const deleteUrl = async (urlId) => {
+  const shortUrlHandler = async ({ url, domainId, expiredIn }) => {
     try {
-      const response = await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/url/remove/${urlId}`,
-        {
-          withCredentials: true
-        }
-      );
-      // console.log(response);
-      setUrls(urls.filter((url) => url._id !== urlId));
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'error',
-        description: `${error.response.data.message}`
-      });
-    }
-  };
-
-  const shortUrl = async ({ url, expiredIn }) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/url/short`,
-        { originalUrl: url, expiredIn },
-        {
-          withCredentials: true
-        }
-      );
-
-      response.data.data.map((url) => setUrls([...urls, url]));
+      if (domainId !== undefined) {
+        await shortUrlByDomain(url, domainId, expiredIn);
+      } else {
+        await shortUrl(url, expiredIn);
+      }
       setOpenDialog(false);
       toast({
         title: 'url shortened successfully'
       });
-      setLoading(false);
     } catch (error) {
       console.error('Error shortening URL:', error);
       toast({
@@ -149,29 +131,23 @@ const DashboardPage = () => {
         title: 'error',
         description: `${error.response.data.message}`
       });
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    userUrls();
-  }, [setUrls, page]);
+    fetchUserUrls();
+  }, [dashboardPageNo]);
 
   useEffect(() => {
-    const searchUrls = async () => {
-      if (!debouncedQuery) return userUrls();
+    getAllDomains();
+  }, []);
+
+  useEffect(() => {
+    const fetchSearchUrls = async () => {
+      if (!debouncedQuery) return fetchUserUrls();
       setSearchLoader(true);
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/url/search?q=${debouncedQuery}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            },
-            withCredentials: true
-          }
-        );
-        setUrls(response.data.data);
+        await searchUrls(debouncedQuery);
         setSearchLoader(false);
       } catch (error) {
         console.log(error);
@@ -183,8 +159,23 @@ const DashboardPage = () => {
         setSearchLoader(false);
       }
     };
-    searchUrls();
+    fetchSearchUrls();
   }, [debouncedQuery]);
+
+  const sortUrls = () => {
+    if (!urls || !urls.urls) return [];
+
+    switch (sortFilter) {
+      case 'custom':
+        console.log(urls);
+        return urls.urls.filter((url) => url.customUrl);
+      case 'random':
+        return urls.urls.filter((url) => !url.customUrl);
+      case 'all':
+      default:
+        return urls.urls;
+    }
+  };
 
   return (
     <Container className="sm:col-span-10">
@@ -198,65 +189,128 @@ const DashboardPage = () => {
           />
           {searchLoader && <Spinner />}
         </div>
-        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogTrigger asChild>
-            <Button className="hover:bg-green-400">
-              <div className="flex space-x-2">
-                <BadgePlus className="self-center" />
-                <span className="hidden md:block">Create</span>
-              </div>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Link</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(shortUrl)}>
-              <div className="grid gap-4 py-4">
-                <InputDiv
-                  label="Destination URL"
-                  placeholder="This Should Be A Very Long URL..."
-                  {...register('url', {
-                    required: true
-                  })}
-                />
-                <p>{errors.url?.message}</p>
-                <div className="flex justify-center items-center space-x-3 my-2">
-                  <Separator className="w-32" />
-                  <span className="text-white">optional</span>
-                  <Separator className="w-32" />
+        <div className="flex space-x-3">
+          <Select
+            defaultValue={sortFilter}
+            value={sortFilter}
+            onValueChange={setSortFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="custom">Custom links</SelectItem>
+              <SelectItem value="random">Random links</SelectItem>
+            </SelectContent>
+          </Select>
+          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <DialogTrigger asChild>
+              <Button className="hover:bg-green-400">
+                <div className="flex space-x-2">
+                  <BadgePlus className="self-center" />
+                  <span className="hidden md:block">Create</span>
                 </div>
-                <div className="flex justify-between">
-                  <p>Expiration Date</p>
-                  <Switch
-                    defaultChecked={isExpirationTime}
-                    onCheckedChange={() => {
-                      setIsExpirationTime((prev) => !prev);
-                    }}
-                  />
-                </div>
-                {isExpirationTime === true && (
-                  <input
-                    className="bg-black"
-                    type="date"
-                    {...register('expiredIn')}
-                  />
-                )}
-              </div>
-              <DialogFooter>
-                <Button disabled={isSubmitting} type="submit">
-                  {loading && (
-                    <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Create
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Link</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(shortUrlHandler)}>
+                  <div className="grid gap-4 py-4">
+                    <FormField
+                      control={form.control}
+                      name="url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Destination URL</FormLabel>
+                          <Input
+                            placeholder="This Should Be A Very Long URL..."
+                            {...field}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="domainId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Domain</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a domain" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {domains.length > 0 ? (
+                                domains.map((domain) => (
+                                  <SelectItem
+                                    value={domain._id}
+                                    key={domain._id}
+                                  >
+                                    {domain.url}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem disabled>
+                                  No domain found
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-center items-center space-x-3 my-2">
+                      <Separator className="w-32" />
+                      <span className="text-white">optional</span>
+                      <Separator className="w-32" />
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Expiration Date</p>
+                      <Switch
+                        defaultChecked={isExpirationTime}
+                        onCheckedChange={() => {
+                          setIsExpirationTime((prev) => !prev);
+                        }}
+                      />
+                    </div>
+                    {isExpirationTime && (
+                      <input
+                        className="dark:bg-black"
+                        type="date"
+                        {...form.register('expiredIn')}
+                      />
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="submit"
+                      disabled={form.formState.isSubmitting}
+                    >
+                      {urlLoader && (
+                        <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Create
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-      {urls.length > 0 ? (
-        urls.map((url) => (
+      {sortUrls().length > 0 ? (
+        sortUrls().map((url) => (
           <div
             key={url._id}
             className="dark:bg-[#1C1917] bg-slate-200  rounded-lg p-3 my-3"
@@ -345,7 +399,7 @@ const DashboardPage = () => {
             </div>
           </div>
         ))
-      ) : loading ? (
+      ) : urlLoader ? (
         <div className="my-3 text-center">
           <Spinner />
         </div>
@@ -355,14 +409,14 @@ const DashboardPage = () => {
 
       <div className="flex justify-center space-x-2">
         <Button
-          disabled={result.hasPrevPage === false}
-          onClick={handlePrevClick}
+          disabled={urls.hasPrevPage === false}
+          onClick={() => setDashboardPageNo(dashboardPageNo - 1)}
         >
           Prev {'<<'}
         </Button>
         <Button
-          disabled={result.hasNextPage === false}
-          onClick={handleNextClick}
+          disabled={urls.hasNextPage === false}
+          onClick={() => setDashboardPageNo(dashboardPageNo + 1)}
         >
           Next {'>>'}
         </Button>

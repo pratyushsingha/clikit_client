@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,6 +21,13 @@ const PricingPage = () => {
   const [loading, setLoading] = useState(false);
 
   const subscriptionCheckoutHandler = async () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Please login to subscribe'
+      });
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await axios.get(
@@ -87,22 +94,24 @@ const PricingPage = () => {
               </span>
             </div>
             {plan.price === 0 ? (
-              <Button
-                disabled={user.userType === 'free'}
-                className="w-full mb-6"
-              >
+              <Button disabled className="w-full mb-6">
                 {plan.buttonText}
               </Button>
             ) : (
               <Button
-                disabled={loading}
-                onClick={() => subscriptionCheckoutHandler()}
+                disabled={loading || user?.userType === 'premium'}
+                onClick={subscriptionCheckoutHandler}
                 className="w-full mb-6 space-x-2"
               >
                 {loading && (
                   <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {plan.buttonText}
+                {user?.userType === 'premium' && (
+                  <CheckCheck className="mr-2 h-4 w-4" />
+                )}
+                {user?.userType === 'premium'
+                  ? 'Already Subscribed'
+                  : plan.buttonText}
               </Button>
             )}
             <ul className="space-y-2">
@@ -119,7 +128,7 @@ const PricingPage = () => {
               <div className="w-full pt-4 border-t border-zinc-800">
                 <div className="flex flex-col cursor-pointer">
                   {plan.extraFeatures.map((feature, index) => (
-                    <div className="flex">
+                    <div key={index} className="flex">
                       <Check className="mr-2 h-4 w-4 text-green-500" />
                       <span key={index} className="text-sm mb-1">
                         {feature}

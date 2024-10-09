@@ -31,6 +31,7 @@ import {
 } from '@/utils/Index';
 import ButtonsCard from '@/components/ui/tailwindcss-buttons';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useUrlStore } from '@/store/useUrlStore';
 
 const backHalfSchema = z.object({
   urlId: z
@@ -67,22 +68,15 @@ const AnalyticsPage = () => {
     totalViews: 0
   });
   const [url, setUrl] = useState([]);
+  const { getUrlById } = useUrlStore();
 
   const urlDetails = async () => {
     setAnalyticsLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/url/details/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          withCredentials: true
-        }
-      );
-      setUrl(response.data.data);
-      console.log(response.data.data);
-      setValue('urlId', response.data.data.urlId);
+      const response = await getUrlById(id);
+      setUrl(response);
+      console.log(response);
+      setValue('urlId', response.urlId);
       setAnalyticsLoading(false);
     } catch (error) {
       console.log(error);

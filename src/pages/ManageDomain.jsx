@@ -1,5 +1,5 @@
 import Container from '@/components/Container';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Collapsible,
@@ -30,57 +30,93 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { useQrcode } from '@/hooks/useQrcode';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDebounce } from '@uidotdev/usehooks';
 import { urlSchema } from './HomePage';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import usePaginationStore from '@/store/usePaginationStore';
+import { useDomainStore } from '@/store/domainStore';
+import { useUrlStore } from '@/store/useUrlStore';
 
 const ManageDomain = () => {
   const { toast } = useToast();
   const { domainId } = useParams();
-  const [domainDetails, setDomainDetails] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [urls, setUrls] = useState([]);
   const { qrcode, generateQrCode } = useQrcode();
-  const [urlLoader, setUrlLoader] = useState(false);
+  const { brandedUrlPageNo, setBrandedUrlPageNo } = usePaginationStore();
+  const {
+    fetchDomainDetails,
+    domainDetails,
+    verifyDomainOwnership,
+    loading,
+    domains,
+    getAllDomains
+  } = useDomainStore();
+  const {
+    deleteUrl,
+    loading: urlLoader,
+    getUrlsByDomain,
+    urls,
+    shortUrlByDomain
+  } = useUrlStore();
 
   const {
     register,
-    handleSubmit,
-    formState: { errors },
-    watch
+    formState: { errors, isSubmitSuccessful },
+    watch,
+    reset,
+    setValue
   } = useForm({
+    defaultValues: {
+      url: ''
+    },
     resolver: zodResolver(urlSchema)
   });
 
   const url = watch('url');
   const debouncedUrl = useDebounce(url, 500);
 
-  const setPage = (page) => {
-    console.log;
-  };
-
-  const handlePrevClick = () => {
-    setPage((prev) => prev - 1);
-  };
-
-  const handleNextClick = () => {
-    setPage((prev) => prev + 1);
-  };
-
-  const fetchDomainDetails = async () => {
-    setLoading(true);
+  const domainDetailsHandler = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/domain/${domainId}`,
-        {
-          withCredentials: true
-        }
-      );
-      console.log(response.data.data);
-      setDomainDetails(response.data.data);
+      await fetchDomainDetails(domainId);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Something went wrong'
+      });
+    }
+  };
+
+  const DomainVerificationHandler = async () => {
+    console.log(domainId);
+    try {
+      await verifyDomainOwnership(domainId);
+      // toast({
+      //   title: 'Success',
+      //   description: 'Domain verified successfully!'
+      // });
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: 'Pending',
+        description: 'Domain verification is still pending, please wait!'
+      });
+    }
+  };
+
+  const getUrlsByDomainHandler = async () => {
+    try {
+      await getUrlsByDomain(domainId);
     } catch (error) {
       console.error(error);
       toast({
@@ -88,73 +124,43 @@ const ManageDomain = () => {
         title: 'Error',
         description: error.response?.data?.message || 'Something went wrong'
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const verifyDomainOwnership = async () => {
+  const deleteUrlHandler = async (urlId) => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/domain/${domainId}/verify`,
-        {
-          withCredentials: true
-        }
-      );
-      setDomainDetails((prev) => ({
-        ...prev,
-        isDomainVerified: true
-      }));
+      await deleteUrl(urlId);
     } catch (error) {
       toast({
-        title: 'Pending',
-        description: 'domain verification is still pending please wait !!'
+        variant: 'destructive',
+        title: 'Error',
+        description: `${error.response.data.message}`
       });
     }
   };
 
-  const getUrlsByDomain = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/url/domain/${domainId}`,
-        {
-          withCredentials: true
-        }
-      );
-      console.log(response.data.data);
-      setUrls(response.data.data);
-    } catch (error) {}
-  };
-
   useEffect(() => {
-    fetchDomainDetails();
+    getAllDomains();
+    domainDetailsHandler();
   }, []);
 
   useEffect(() => {
-    verifyDomainOwnership();
-  }, [domainDetails.isDomainVerified]);
+    if (domainDetails && domainDetails.isDomainVerified !== undefined) {
+      DomainVerificationHandler();
+    }
+  }, []);
 
   useEffect(() => {
-    getUrlsByDomain();
+    setBrandedUrlPageNo(1);
+    getUrlsByDomainHandler();
   }, [domainId]);
 
   useEffect(() => {
-    const shortUrlWithDomain = async () => {
+    const shortUrlWithDomainHandler = async () => {
       if (!debouncedUrl) return;
-      setUrlLoader(true);
       try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/url/short/${domainId}`,
-          {
-            originalUrl: debouncedUrl
-          },
-          {
-            withCredentials: true
-          }
-        );
-        console.log(response.data.data);
-        setUrlLoader(false);
-        // setUrls((prev) => [response.data.data, ...prev]);
+        await shortUrlByDomain(debouncedUrl, domainId);
+        reset(); // Clear the input field after the URL is shortened
       } catch (error) {
         console.error(error);
         toast({
@@ -162,17 +168,40 @@ const ManageDomain = () => {
           title: 'Error',
           description: error.response?.data?.message || 'Something went wrong'
         });
-        setUrlLoader(false);
       }
     };
-    shortUrlWithDomain();
+    shortUrlWithDomainHandler();
   }, [debouncedUrl]);
 
+  if (loading) {
+    return <Spinner />;
+  }
   return (
     <Container className="sm:col-span-10 justify-center items-center">
       {loading && <Spinner />}
-
-      {!loading && domainDetails.isDomainVerified === false ? (
+      <div className="flex space-x-3 pb-5">
+        <p className="text-2xl">Links for domains</p>
+        <Select
+          defaultValue={domainDetails._id}
+          value={domainDetails._id}
+          onValueChange={() => Navigate(`custom-domains/${domainId}`)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Theme" />
+          </SelectTrigger>
+          <SelectContent>
+            {domains.map((domain) => (
+              <SelectItem key={domain._id} value={domain._id}>
+                {domain.url}
+              </SelectItem>
+            ))}
+            <Link to={`/dashboard/custom-domains`}>
+              <SelectItem value="add_a_domain">Add a Domain</SelectItem>
+            </Link>
+          </SelectContent>
+        </Select>
+      </div>
+      {!loading && !domainDetails.isDomainVerified ? (
         <div>
           <p className="text-xs">
             To be able to use your links you need to set up DNS records at your
@@ -203,7 +232,7 @@ const ManageDomain = () => {
               </p>
               <p className="font-serif">
                 Step 2: Create a new type <code>CNAME</code> record with a name{' '}
-                <code>{domainDetails.txtRecord?.name}</code> (no quotes) and
+                <code>{domainDetails.cnameRecord?.name}</code> (no quotes) and
                 value <code>{domainDetails.txtRecord?.value}</code> (no quotes).
                 Save changes.
               </p>
@@ -236,7 +265,7 @@ const ManageDomain = () => {
               {...register('url')}
             />
             <Button>
-              <BadgePlus />
+              {urlLoader ? <Spinner className="text-black" /> : <BadgePlus />}
             </Button>
           </div>
           {errors.url && <p className="text-red-600">{errors.url?.message}</p>}
@@ -328,7 +357,7 @@ const ManageDomain = () => {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-500 cursor-pointer"
-                              onClick={() => deleteUrl(url._id)}
+                              onClick={() => deleteUrlHandler(url._id)}
                             >
                               Delete
                             </DropdownMenuItem>
@@ -350,13 +379,13 @@ const ManageDomain = () => {
           <div className="flex justify-center space-x-2">
             <Button
               disabled={urls.hasPrevPage === false}
-              onClick={handlePrevClick}
+              onClick={() => setBrandedUrlPageNo(brandedUrlPageNo - 1)}
             >
               Prev {'<<'}
             </Button>
             <Button
               disabled={urls.hasNextPage === false}
-              onClick={handleNextClick}
+              onClick={() => setBrandedUrlPageNo(brandedUrlPageNo + 1)}
             >
               Next {'>>'}
             </Button>

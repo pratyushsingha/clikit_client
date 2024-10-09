@@ -10,14 +10,16 @@ import {
   DialogTrigger,
   Label
 } from '@/components/Index';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Spinner from '@/components/loader/Spinner';
-// import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 import QrDialog from '@/components/QrDialog';
 import { useToast } from '@/components/ui/use-toast';
+import { useQrcode } from '@/hooks/useQrcode';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useUrlStore } from '@/store/useUrlStore';
 
 export const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })

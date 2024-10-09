@@ -5,7 +5,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="sm:col-span-2">
+    <div className="hidden md:block sm:col-span-2">
       {SidebarItems.map((item) => (
         <NavLink
           key={item._id}
@@ -16,9 +16,9 @@ const Sidebar = () => {
               : 'dark:bg-gray-800 bg-slate-200'
           }`}
         >
-          <div className='flex space-x-2'>
+          <div className="flex space-x-2">
             {item.icon}
-            <span className=''>{item.title}</span>
+            <span className="">{item.title}</span>
           </div>
         </NavLink>
       ))}

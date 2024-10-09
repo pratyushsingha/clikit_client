@@ -4,8 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordStrength } from 'check-password-strength';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
 import { ReloadIcon } from '@radix-ui/react-icons';
 
 import {
@@ -66,25 +65,12 @@ const SignupPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [passStrength, setPassStrength] = useState(-1);
-  const { progress, setProgress, loading, setLoading } = useAuthStore();
+  const { progress, setProgress, loading, setLoading, signup } = useAuthStore();
 
-  const signUp = async ({ fullName, email, password }) => {
-    setLoading(true);
-    setProgress(progress + 30);
+  const signUpHandler = async ({ fullName, email, password }) => {
     try {
-      const data = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/users/register`,
-        {
-          fullName,
-          email,
-          password
-        },
-        { withCredentials: true }
-      );
-      toast({
-        title: 'success',
-        description: `welcome ${data.data.data.fullName.split(' ')[0]}`
-      });
+      const response = await signup(fullName, email, password);
+
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -95,10 +81,9 @@ const SignupPage = () => {
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.response.data.message}`
+        description:
+          `${error.response?.data?.message}` || 'something went wrong'
       });
-      setLoading(false);
-      setProgress(progress + 100);
     }
   };
 
@@ -110,7 +95,7 @@ const SignupPage = () => {
           <CardDescription>Create Account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit(signUp)}>
+          <form className="space-y-4" onSubmit={handleSubmit(signUpHandler)}>
             <InputDiv
               label="fullName"
               placeholder="enter your name"
@@ -165,9 +150,7 @@ const SignupPage = () => {
             <p className="text-red-600">{errors.cnfPassword?.message}</p>
             <div>
               <Button disabled={isSubmitting} className="w-full">
-                {loading && (
-                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
                 create account
               </Button>
             </div>

@@ -41,14 +41,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(null);
   const [rememberMe, setRememberMe] = useState(true);
 
-  const {
-    setUser,
-    setLoading,
-    setIsAuthenticated,
-    loading,
-    progress,
-    setProgress
-  } = useAuthStore();
+  const { loading, login, user } = useAuthStore();
 
   const {
     register,
@@ -63,43 +56,21 @@ const LoginPage = () => {
   });
 
   const loginUser = async ({ email, password }) => {
-    setLoading(true);
-    setProgress(progress + 30);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/users/login`,
-        {
-          email,
-          password
-        },
-        { withCredentials: true }
-      );
-      // const accessToken = response?.data?.data?.accessToken;
-      // const user = response?.data?.data?.user;
-      // setAuth({ user, accessToken });
-      // console.log(auth);
-      setUser(response.data.data.user);
-      setIsAuthenticated(true);
-      // if (rememberMe === true) {
-      //   localStorage.setItem('accessToken', response.data.data.accessToken);
-      //   console.log(rememberMe);
-      // }
+      const response = await login(email, password);
       toast({
         title: 'success',
-        description: `welcome back ${response?.data?.data?.user.fullName}`
+        description: `welcome back ${response.user.fullName}`
       });
       navigate(from, { replace: true });
-
-      setLoading(false);
-      setProgress(100);
     } catch (error) {
+      console.log(error);
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.response.data.message}`
+        description:
+          `${error?.response?.data?.message}` || 'something went wrong'
       });
-      setLoading(false);
-      setProgress(progress + 100);
     }
   };
 

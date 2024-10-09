@@ -34,6 +34,7 @@ const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/forget-password', element: <ForgotPassword /> },
       { path: '/reset-password', element: <ResetPassword /> },
+      { path: '/pricing', element: <PricingPage /> },
       {
         element: <AuthLayout />,
         children: [
@@ -63,7 +64,6 @@ const router = createBrowserRouter([
             path: '/dashboard/analytics/:id',
             element: <AnalyticsPage />
           },
-          { path: '/pricing', element: <PricingPage /> },
           { path: '/payment-success', element: <PaymentSuccess /> },
           { path: '/payment-failed', element: <PaymentFailed /> }
         ]

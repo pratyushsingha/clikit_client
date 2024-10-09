@@ -20,6 +20,7 @@ import { passwordStrength } from 'check-password-strength';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { z } from 'zod';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const passwordSchema = z.object({
   password: z
@@ -50,16 +51,14 @@ const ResetPassword = () => {
     },
     resolver: zodResolver(passwordSchema)
   });
+  const { resetPass } = useAuthStore();
 
   const resetPassword = async ({ password }) => {
     try {
-      const response = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/users/reset-password`,
-        {
-          email: urlParams.get('email'),
-          password,
-          token: urlParams.get('token')
-        }
+      const response = await resetPass(
+        urlParams.get('email'),
+        password,
+        urlParams.get('token')
       );
       toast({
         title: response.data.message
@@ -68,11 +67,11 @@ const ResetPassword = () => {
         navigate('/login');
       }, 3000);
     } catch (error) {
-      console.log('reset password error: ', error);
       toast({
         variant: 'destructive',
         title: 'error',
-        description: `${error.response.data.message}`
+        description:
+          `${error?.response?.data.message}` || 'something went wrong'
       });
     }
   };
