@@ -13,7 +13,7 @@ const AuthLayout = () => {
   useEffect(() => {
     isAuthenticated && location.pathname === '/login'
       ? navigate('/dashboard')
-      : navigate(location.pathname);
+      : navigate('/login');
   }, [authStatus, isAuthenticated, location.pathname, navigate]);
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
