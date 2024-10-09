@@ -18,9 +18,6 @@ import Spinner from '@/components/loader/Spinner';
 import { Link } from 'react-router-dom';
 import QrDialog from '@/components/QrDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useQrcode } from '@/hooks/useQrcode';
-import { useUrlStore } from '@/store/useUrlStore';
 
 export const urlSchema = z.object({
   url: z.string().nonempty("URL can't be empty").url({ message: 'Invalid URL' })

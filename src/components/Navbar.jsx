@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const Navbar = () => {
   const { toast } = useToast();
+
   const navigate = useNavigate();
   const { setUser, setIsAuthenticated, user, isAuthenticated } = useAuthStore();
 

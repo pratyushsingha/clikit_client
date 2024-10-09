@@ -8,19 +8,26 @@ import {
   CardFooter,
   Label,
   Input,
-  PassStrengthBar
+  PassStrengthBar,
+  Spinner,
+  CardTitle,
+  Dialog,
+  DialogTrigger,
+  DialogContent
 } from '@/components/Index';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+
 import { FileUpload } from '@/components/ui/file-upload';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordStrength } from 'check-password-strength';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 const passwordSchema = z.object({
   oldPassword: z.string().nonempty("password can't be empty"),
@@ -36,21 +43,26 @@ const passwordSchema = z.object({
 
 const UpdateUser = () => {
   const { toast } = useToast();
-  const { user, setUser } = useAuthStore();
-  const { fetchCurrentUser } = useCurrentUser();
+
+  const { user, setUser, currentUser, loading: authLoader } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors, isDirty, isTouched, isSubmitSuccessful, isSubmitting },
-    watch
+    watch,
+    reset
   } = useForm({
     defaultValues: {
-      fullName: user?.fullName,
-      email: user?.email
+      fullName: user?.fullName || '',
+      email: user?.email || ''
     }
   });
+
+  if (!user || authLoader) {
+    return <Spinner />;
+  }
 
   const updateUserDetails = async (data) => {
     setLoading(true);
@@ -80,8 +92,10 @@ const UpdateUser = () => {
   };
 
   useEffect(() => {
-    isSubmitSuccessful && fetchCurrentUser();
-  }, [isSubmitSuccessful, setUser]);
+    if (isSubmitSuccessful) {
+      currentUser();
+    }
+  }, [isSubmitSuccessful, currentUser, setUser]);
 
   return (
     <form onSubmit={handleSubmit(updateUserDetails)}>
@@ -113,13 +127,12 @@ const ChangePassword = () => {
   const {
     register,
     handleSubmit,
-    setValue,
-    formState: { errors, isDirty, isTouched, isSubmitSuccessful, isSubmitting },
-    watch
+
+    formState: { errors, isDirty, isSubmitting }
   } = useForm({
     resolver: zodResolver(passwordSchema)
   });
-  const { loading, setLoading } = useAuthStore();
+  const { loading, changePass, user } = useAuthStore();
 
   const [showPassword, setShowPassword] = useState({
     oldPassword: false,
@@ -128,29 +141,18 @@ const ChangePassword = () => {
   const [passStrength, setPassStrength] = useState(-1);
 
   const handleChangePassword = async ({ oldPassword, newPassword }) => {
-    setLoading(true);
     try {
-      const response = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/users/change-password`,
-        {
-          oldPassword,
-          newPassword
-        },
-        {
-          withCredentials: true
-        }
-      );
+      await changePass(user.email, oldPassword, newPassword);
       toast({
         title: 'Password Changed Successfully'
       });
-      setLoading(false);
     } catch (error) {
       console.log('change password error', error);
       toast({
         variant: 'destructive',
-        title: error.response.data.message
+
+        title: error?.response?.data.message || 'something went wrong'
       });
-      setLoading(false);
     }
   };
   return (
@@ -225,13 +227,11 @@ const ChangePassword = () => {
               {errors.oldPassword?.message || errors.newPassword?.message}
             </p>
             <Button
-              disabled={
-                isSubmitting ||
-                Object.keys(errors).length > 0
-              }
+              disabled={isSubmitting || !isDirty}
               type="submit"
               variant={'destructive'}
             >
+              {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
               Change Password
             </Button>
           </CardFooter>
@@ -245,20 +245,30 @@ const SettingPage = () => {
   const { fetchCurrentUser } = useCurrentUser();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { user, setUser } = useAuthStore();
+
+  const { user, setUser, loading: authLoader, currentUser } = useAuthStore();
 
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors, isDirty, isTouched, isSubmitSuccessful, isSubmitting },
-    watch
+    watch,
+    reset
   } = useForm({
     defaultValues: {
-      fullName: user.fullName,
-      email: user.email
+      fullName: user?.fullName || '',
+      email: user?.email || ''
     }
   });
+
+  useEffect(() => {
+    currentUser();
+  }, []);
+
+  if (!user || authLoader) {
+    return <Spinner />;
+  }
 
   const handleFileUpload = async (files) => {
     if (files.length === 0) return;
@@ -291,13 +301,30 @@ const SettingPage = () => {
     }
   };
 
-  useEffect(() => {
-    isSubmitSuccessful && fetchCurrentUser();
-  }, [isSubmitSuccessful]);
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
+  const cancelSubscription = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/subscription/cancel`,
+        {},
+        {
+          withCredentials: true
+        }
+      );
+      toast({
+        title: `${response.data.message}`
+      });
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      toast({
+        variant: 'destructive',
+        title: 'error',
+        description:
+          `${error?.response?.data.message}` || 'something went wrong'
+      });
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="sm:col-span-10">
@@ -323,6 +350,27 @@ const SettingPage = () => {
           </form>
           <UpdateUser />
         </CardContent>
+      </Card>
+
+      <Card className="w-full my-3">
+        <CardHeader>
+          <CardTitle>Subscription</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <span>Current Plan:</span>
+            <Badge variant="secondary" className="ml-2">
+              {user.userType.toUpperCase()}
+            </Badge>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          {user.userType === 'free' && (
+            <Link to={'/pricing'}>
+              <Button className="mt-2">Upgrade</Button>
+            </Link>
+          )}
+        </CardFooter>
       </Card>
       <ChangePassword />
     </div>
