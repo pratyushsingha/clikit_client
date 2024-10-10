@@ -37,8 +37,10 @@ const HomePage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    reset
   } = useForm({
+    url: '',
     resolver: zodResolver(urlSchema)
   });
 
@@ -55,6 +57,7 @@ const HomePage = () => {
       );
 
       setShortenedUrl(response.data.data);
+      reset();
       setLoading(false);
       setIsExploding(true);
     } catch (error) {

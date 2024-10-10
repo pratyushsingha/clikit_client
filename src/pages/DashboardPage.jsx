@@ -97,6 +97,11 @@ const DashboardPage = () => {
   } = useUrlStore();
 
   const form = useForm({
+    defaultValues: {
+      url: '',
+      domainId: '',
+      expiredIn: ''
+    },
     resolver: zodResolver(shortUrlSchema)
   });
 
@@ -124,6 +129,7 @@ const DashboardPage = () => {
       toast({
         title: 'url shortened successfully'
       });
+      form.reset();
     } catch (error) {
       console.error('Error shortening URL:', error);
       toast({
