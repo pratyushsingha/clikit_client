@@ -36,8 +36,8 @@ export const useDomainStore = create((set, get) => ({
         }
       );
       const currentDomains = get().domains;
-      set({ domains: [...currentDomains, response.data.data], loading: false });
-      return response;
+     set({ domains: [...currentDomains, response.data.data], loading: false });
+      return response.data.data;
     } catch (error) {
       set({ loading: false });
       throw error;
