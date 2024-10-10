@@ -81,7 +81,7 @@ export const useUrlStore = create((set, get) => ({
         }
       );
       if (get().urls > 0) {
-        set({ urls: response.data.data });
+        set({ urls: response.data.data, loading: false });
       } else {
         set((state) => ({
           urls: {
@@ -107,13 +107,17 @@ export const useUrlStore = create((set, get) => ({
         }
       );
 
-      set((state) => ({
-        urls: {
-          ...state.urls,
-          urls: [response.data.data, ...state.urls.urls]
-        },
-        loading: false
-      }));
+      if (get().urls > 0) {
+        set({ urls: response.data.data, loading: false });
+      } else {
+        set((state) => ({
+          urls: {
+            ...state.urls,
+            urls: [response.data.data, ...state.urls.urls]
+          },
+          loading: false
+        }));
+      }
     } catch (error) {
       console.error('Error shortening URL:', error);
       set({ loading: false });
