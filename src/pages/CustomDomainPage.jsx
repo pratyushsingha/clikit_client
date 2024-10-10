@@ -47,7 +47,7 @@ const CustomDomainPage = () => {
   const handleAddDomain = async ({ domain }) => {
     try {
       const response = await addDomain({ domain });
-      navigate(`/dashboard/custom-domains/${response.data.data._id}`);
+      navigate(`/dashboard/custom-domains/${response.domain._id}`);
     } catch (error) {
       toast({
         variant: 'destructive',

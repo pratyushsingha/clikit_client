@@ -86,7 +86,7 @@ export const useUrlStore = create((set, get) => ({
         set((state) => ({
           urls: {
             ...state.urls,
-            urls: [response.data.data, ...state.urls.urls]
+            urls: [response.data.data, ...state?.urls?.urls]
           },
           loading: false
         }));
