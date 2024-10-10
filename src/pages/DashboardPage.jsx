@@ -98,9 +98,7 @@ const DashboardPage = () => {
 
   const form = useForm({
     defaultValues: {
-      url: '',
-      domainId: '',
-      expiredIn: ''
+      url: ''
     },
     resolver: zodResolver(shortUrlSchema)
   });
