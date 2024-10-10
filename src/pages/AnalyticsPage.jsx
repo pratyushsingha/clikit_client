@@ -56,8 +56,7 @@ const AnalyticsPage = () => {
     resolver: zodResolver(backHalfSchema)
   });
 
-  // const { user } = useContext(AppContext);
-  const { user } = useAuthStore();
+  const { user, loading: authLoader, currentUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [sevenDaysData, setSevenDaysData] = useState([]);
@@ -97,7 +96,9 @@ const AnalyticsPage = () => {
       );
       setUrl((prev) => ({
         ...prev,
-        customUrl: url.customUrl.split('/')[0] + `/${response.data.data.urlId}`,
+        customUrl: url.customUrl
+          ? url.customUrl?.split('/')[0] + `/${response.data.data.urlId}`
+          : undefined,
         shortenUrl:
           url.shortenUrl.split(`/${previousUrlId}`)[0] +
           `/${response.data.data.urlId}`,
@@ -218,6 +219,16 @@ const AnalyticsPage = () => {
     urlDetails();
   }, [setAnalyticsData]);
 
+  useEffect(() => {
+    if (!authLoader && user === undefined) {
+      currentUser();
+    }
+  }, []);
+
+  if (!user || authLoader) {
+    return <Spinner />;
+  }
+
   return analyticsLoading ? (
     <div className="text-center">
       <Spinner />
@@ -299,7 +310,7 @@ const AnalyticsPage = () => {
       <div className="border border-dotted rounded border-green-500 p-5">
         <p className="h3 my-3 ">Edit Link</p>
         <div
-          className={`grid grid-4 gap-3 ${user.userType === 'free' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+          className={`grid grid-4 gap-3 ${user?.userType === 'free' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
         >
           <p className="mb-5 font-semibold">Backhalf</p>
           <form onSubmit={handleSubmit(updateBachHalf)}>
@@ -310,7 +321,7 @@ const AnalyticsPage = () => {
                 disabled
               />
               <InputDiv
-                disabled={user.userType === 'free'}
+                disabled={user?.userType === 'free'}
                 value={watch('urlId')}
                 {...register('urlId', {
                   required: true
@@ -333,7 +344,7 @@ const AnalyticsPage = () => {
               </Button>
             </div>
           </form>
-          {user.userType === 'free' && (
+          {user?.userType === 'free' && (
             <div className="flex justify-end items-end">
               <Button className="w-6/12 ">
                 <Link to={'/pricing'}>Upgrade to Premium</Link>
