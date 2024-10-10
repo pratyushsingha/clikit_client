@@ -108,12 +108,12 @@ export const useUrlStore = create((set, get) => ({
       );
 
       if (get().urls > 0) {
-        set({ urls: response.data.data, loading: false });
+        set({ urls: response.data.data[0], loading: false });
       } else {
         set((state) => ({
           urls: {
             ...state.urls,
-            urls: [response.data.data, ...state.urls.urls]
+            urls: [response.data.data[0], ...state.urls.urls]
           },
           loading: false
         }));

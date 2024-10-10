@@ -97,9 +97,7 @@ const DashboardPage = () => {
   } = useUrlStore();
 
   const form = useForm({
-    defaultValues: {
-      url: ''
-    },
+   url:'',
     resolver: zodResolver(shortUrlSchema)
   });
 
